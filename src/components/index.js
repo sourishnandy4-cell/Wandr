@@ -7,3 +7,6 @@ export { ItineraryTimeline } from './ItineraryTimeline';
 export { BudgetPieChart } from './BudgetPieChart';
 export { RecentExpenses } from './RecentExpenses';
 export { BalanceSheet } from './BalanceSheet';
+export { TripSetupForm } from './TripSetupForm';
+export { AddItineraryForm } from './AddItineraryForm';
+export { AddExpenseForm } from './AddExpenseForm';
