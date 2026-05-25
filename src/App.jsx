@@ -75,6 +75,8 @@ function App() {
     }
   }, [tripMeta]);
 
+  const [activeTab, setActiveTab] = useState('dashboard');
+
   // Format date range for header
   const dateRange = tripMeta ? `${new Date(tripMeta.start_date).toLocaleDateString('en-US', { 
     month: 'short', 
