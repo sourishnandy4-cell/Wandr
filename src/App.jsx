@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, FinanceAI } from './components';
+import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, FinanceAI, TripMembers } from './components';
 import { supabase, isMockMode } from './lib/supabaseClient';
 import {
   MOCK_TRIPS,
@@ -706,6 +706,16 @@ function App() {
                   currencySymbol={currentUser.currencySymbol || '₹'}
                 />
               </div>
+            </div>
+          )}
+
+          {activeTab === 'members' && (
+            <div className="animate-fadeIn">
+              <TripMembers 
+                tripId={tripMeta.id}
+                tripName={tripMeta.name}
+                currentUser={currentUser}
+              />
             </div>
           )}
 

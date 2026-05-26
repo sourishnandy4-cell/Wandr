@@ -7,7 +7,7 @@ export const AddFriendsModal = ({ tripId, tripName, onClose, currentFriends = []
   const [copied, setCopied] = useState(false);
 
   // Generate shareable link
-  const shareLink = `${window.location.origin}?trip=${tripId}`;
+  const shareLink = `${window.location.origin}?invite=${tripId}`;
 
   const handleAddFriend = (e) => {
     e.preventDefault();
