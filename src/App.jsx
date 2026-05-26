@@ -124,6 +124,27 @@ function App() {
       
       if (inviteTripId && currentUser) {
         try {
+          // First, verify the trip exists
+          let tripExists = false;
+          if (isMockMode) {
+            tripExists = MOCK_TRIPS.some(t => t.id === inviteTripId);
+          } else {
+            const { data: tripData, error: tripErr } = await supabase
+              .from('trips')
+              .select('id')
+              .eq('id', inviteTripId)
+              .single();
+            tripExists = !tripErr && tripData;
+          }
+
+          if (!tripExists) {
+            alert('This trip invitation link is invalid or the trip no longer exists.');
+            const url = new URL(window.location.href);
+            url.searchParams.delete('invite');
+            window.history.replaceState({}, '', url);
+            return;
+          }
+
           if (!isMockMode) {
             // Add user to the trip members
             const { error: joinErr } = await supabase.from('trip_members').insert([{
@@ -131,21 +152,22 @@ function App() {
               user_id: currentUser.id,
               role: 'member'
             }]);
-            if (joinErr) throw joinErr;
+            if (joinErr && joinErr.code !== '23505') throw joinErr;
           } else {
             // Mock mode join
             const existingMemberRecord = MOCK_TRIP_MEMBERS.find(m => m.trip_id === inviteTripId);
             if (existingMemberRecord) {
               if (!existingMemberRecord.members.includes(currentUser.name)) {
                 existingMemberRecord.members.push(currentUser.name);
+                saveMockData();
               }
             } else {
               MOCK_TRIP_MEMBERS.push({
                 trip_id: inviteTripId,
                 members: [currentUser.name],
               });
+              saveMockData();
             }
-            saveMockData();
           }
           
           // Clear URL parameter without refreshing page
@@ -162,17 +184,11 @@ function App() {
           alert('You have successfully joined the trip!');
 
         } catch (err) {
-          if (err.code === '23505') { 
-            // Unique violation: Already a member, just switch to it
-            const url = new URL(window.location.href);
-            url.searchParams.delete('invite');
-            window.history.replaceState({}, '', url);
-            localStorage.setItem('wandr_active_trip_id', inviteTripId);
-            setActiveTripId(inviteTripId);
-          } else {
-            console.error('Failed to join trip:', err);
-            alert('Failed to join the trip: ' + err.message);
-          }
+          console.error('Failed to join trip:', err);
+          alert('Failed to join the trip. Please try again or contact the trip organizer.');
+          const url = new URL(window.location.href);
+          url.searchParams.delete('invite');
+          window.history.replaceState({}, '', url);
         }
       }
     };
