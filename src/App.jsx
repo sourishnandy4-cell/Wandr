@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, FinanceAI } from './components';
 import { supabase, isMockMode } from './lib/supabaseClient';
-import { MOCK_TRIPS, mockFetchTripMeta } from './lib/mockDatabase';
+import {
+  MOCK_TRIPS,
+  MOCK_TRIP_MEMBERS,
+  mockFetchTripMeta,
+  mockDeleteTrip,
+  saveMockData,
+} from './lib/mockDatabase';
 import { Loader2, Sparkles, MapPin, Calendar, DollarSign, Compass, ArrowRight, BookOpen, Trash2 } from 'lucide-react';
 
 function App() {
@@ -42,8 +48,7 @@ function App() {
     setTripsLoading(true);
     try {
       if (isMockMode) {
-        const { MOCK_TRIPS: list } = await import('./lib/mockDatabase');
-        setExistingTrips([...list]);
+        setExistingTrips([...MOCK_TRIPS]);
       } else {
         const { data, error } = await supabase
           .from('trips')
@@ -66,7 +71,6 @@ function App() {
 
     try {
       if (isMockMode) {
-        const { mockDeleteTrip } = await import('./lib/mockDatabase');
         await mockDeleteTrip(tripId);
       } else {
         const { error } = await supabase
@@ -207,7 +211,6 @@ function App() {
           total_budget: Number(newBudget),
         });
 
-        const { MOCK_TRIP_MEMBERS, saveMockData } = await import('./lib/mockDatabase');
         MOCK_TRIP_MEMBERS.push({
           trip_id: generatedId,
           members: membersList,
