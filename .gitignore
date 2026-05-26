@@ -1,27 +1,31 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
 
-# Build output
+# ── Build output ──────────────────────────────────────────────────────────────
 dist/
 build/
 
-# Environment variables
+# ── Environment variables (never commit real secrets) ─────────────────────────
 .env
 .env.local
+.env.*.local
 
-# IDE
+# ── Editor & OS ───────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Logs
+# ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Deployment folders
+# ── Local Vite cache ──────────────────────────────────────────────────────────
+.vite/
+
+# ── Deployment working folders ────────────────────────────────────────────────
 gh-pages/

@@ -1,12 +1,13 @@
 {
-  "name": "group-travel-planner",
+  "name": "wandr-group-travel-planner",
   "version": "1.0.0",
-  "description": "A collaborative group travel planning dashboard",
+  "description": "Wandr – A collaborative group travel dashboard for itinerary management, expense tracking, and balance settlement.",
+  "homepage": "https://sourishnandy4-cell.github.io/trip-planner/",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --base /trip-planner/"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

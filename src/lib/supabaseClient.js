@@ -1,21 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://tmggnwyaspwlbhfjhwnx.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtZ2dud3lhc3B3bGJoZmpod254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjI2ODgsImV4cCI6MjA5NTI5ODY4OH0.q1rEu1HM5C8UWAdHhh8dY1LGI_n-9-B-v_kzZBQeCfs';
+// In production (GitHub Pages) these are injected by the GitHub Actions workflow
+// via repository secrets: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
+// For local dev, copy .env.example → .env and fill in your project values.
+const SUPABASE_URL      = import.meta.env.VITE_SUPABASE_URL      || '';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Detect if we should use fallback mock mode
-export const isMockMode = 
-  !SUPABASE_URL || 
-  !SUPABASE_ANON_KEY || 
-  SUPABASE_URL === 'your_supabase_url_here' || 
+// Falls back to high-fidelity localStorage mock mode when no real project is configured.
+export const isMockMode =
+  !SUPABASE_URL ||
+  !SUPABASE_ANON_KEY ||
+  SUPABASE_URL === 'your_supabase_url_here' ||
   SUPABASE_ANON_KEY === 'your_supabase_anon_key_here';
 
 if (isMockMode) {
-  console.warn('[Supabase] Environment variables missing or placeholder. Running in high-fidelity mock mode.');
+  console.info('[Wandr] No Supabase config detected — running in offline mock mode.');
 } else {
-  console.log('[Supabase] Initializing real client with configured environment variables.');
+  console.info('[Wandr] Supabase client initialised.');
 }
 
-export const supabase = !isMockMode 
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+export const supabase = !isMockMode
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
