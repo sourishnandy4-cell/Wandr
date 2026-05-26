@@ -12,3 +12,6 @@ export { AddItineraryForm } from './AddItineraryForm';
 export { AddExpenseForm } from './AddExpenseForm';
 export { UsernameSetup } from './UsernameSetup';
 export { AddFriendsModal } from './AddFriendsModal';
+export { ItineraryView } from './ItineraryView';
+export { ExpensesView } from './ExpensesView';
+export { DocsView } from './DocsView';

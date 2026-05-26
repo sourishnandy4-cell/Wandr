@@ -10,6 +10,9 @@ import { AddItineraryForm } from './components/AddItineraryForm';
 import { AddExpenseForm } from './components/AddExpenseForm';
 import { UsernameSetup } from './components/UsernameSetup';
 import { AddFriendsModal } from './components/AddFriendsModal';
+import { ItineraryView } from './components/ItineraryView';
+import { ExpensesView } from './components/ExpensesView';
+import { DocsView } from './components/DocsView';
 import { Plus, Users } from 'lucide-react';
 
 function App() {
@@ -187,82 +190,112 @@ function App() {
             user={{ name: username, initials: userInitials }}
           />
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 mb-6">
-            <button
-              onClick={() => setShowItineraryForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-all duration-200"
-            >
-              <Plus className="w-5 h-5" />
-              Add Activity
-            </button>
-            <button
-              onClick={() => setShowExpenseForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-all duration-200"
-            >
-              <Plus className="w-5 h-5" />
-              Add Expense
-            </button>
-            <button
-              onClick={() => setShowFriendsModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-all duration-200"
-            >
-              <Users className="w-5 h-5" />
-              Friends ({friends.length})
-            </button>
-            <button
-              onClick={() => setShowTripForm(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
-            >
-              Edit Trip
-            </button>
-          </div>
+          {/* Render Different Views Based on Active Tab */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Action Buttons */}
+              <div className="flex gap-3 mb-6">
+                <button
+                  onClick={() => setShowItineraryForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-all duration-200"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Activity
+                </button>
+                <button
+                  onClick={() => setShowExpenseForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-all duration-200"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Expense
+                </button>
+                <button
+                  onClick={() => setShowFriendsModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-all duration-200"
+                >
+                  <Users className="w-5 h-5" />
+                  Friends ({friends.length})
+                </button>
+                <button
+                  onClick={() => setShowTripForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
+                >
+                  Edit Trip
+                </button>
+              </div>
 
-          {/* Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Itinerary (spans 2 columns on large screens) */}
-            <div className="lg:col-span-2">
-              {itineraryItems.length > 0 ? (
-                <ItineraryTimeline items={itineraryItems} />
-              ) : (
-                <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-                  <p className="text-gray-500 mb-4">No activities added yet</p>
-                  <button
-                    onClick={() => setShowItineraryForm(true)}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all duration-200"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Add Your First Activity
-                  </button>
+              {/* Dashboard Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Itinerary (spans 2 columns on large screens) */}
+                <div className="lg:col-span-2">
+                  {itineraryItems.length > 0 ? (
+                    <ItineraryTimeline items={itineraryItems} />
+                  ) : (
+                    <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                      <p className="text-gray-500 mb-4">No activities added yet</p>
+                      <button
+                        onClick={() => setShowItineraryForm(true)}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all duration-200"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Add Your First Activity
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Right Column - Budget & Expenses */}
-            <div className="space-y-6">
-              {expenseCategories.length > 0 ? (
-                <BudgetPieChart 
-                  totalBudget={totalBudget}
-                  categories={expenseCategories}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-                  <p className="text-gray-500 mb-4">No expenses yet</p>
-                  <button
-                    onClick={() => setShowExpenseForm(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-all duration-200"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Add Expense
-                  </button>
+                {/* Right Column - Budget & Expenses */}
+                <div className="space-y-6">
+                  {expenseCategories.length > 0 ? (
+                    <BudgetPieChart 
+                      totalBudget={totalBudget}
+                      categories={expenseCategories}
+                    />
+                  ) : (
+                    <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+                      <p className="text-gray-500 mb-4">No expenses yet</p>
+                      <button
+                        onClick={() => setShowExpenseForm(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-all duration-200"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Add Expense
+                      </button>
+                    </div>
+                  )}
+                  
+                  <RecentExpenses expenses={expenses} />
+                  
+                  <BalanceSheet balances={balances} />
                 </div>
-              )}
-              
-              <RecentExpenses expenses={expenses} />
-              
-              <BalanceSheet balances={balances} />
-            </div>
-          </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'itinerary' && (
+            <ItineraryView
+              itineraryItems={itineraryItems}
+              showForm={showItineraryForm}
+              setShowForm={setShowItineraryForm}
+              onAddItinerary={handleAddItinerary}
+            />
+          )}
+
+          {activeTab === 'expenses' && (
+            <ExpensesView
+              expenses={expenses}
+              expenseCategories={expenseCategories}
+              totalBudget={totalBudget}
+              balances={balances}
+              showForm={showExpenseForm}
+              setShowForm={setShowExpenseForm}
+              onAddExpense={handleAddExpense}
+            />
+          )}
+
+          {activeTab === 'docs' && (
+            <DocsView tripId={tripMeta.id} />
+          )}
         </div>
       </div>
     </div>
