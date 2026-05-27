@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, Trash2, Loader2, Sparkles, HelpCircle, KeyRound } from 'lucide-react';
+import { Bot, Send, Trash2, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 import { fetchItinerary } from '../lib/itineraryService';
 import { fetchRecentExpenses, fetchTripMembers } from '../lib/expenseService';
 import { calculateNetBalances } from '../lib/balanceCalculator';
@@ -63,20 +63,17 @@ const renderMarkdown = (text) => {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Google Gemini API — free tier via Google AI Studio
-// Get your free key at: https://aistudio.google.com/app/apikey
+// Google Gemini — baked-in key from GitHub Secret VITE_GEMINI_API_KEY
+// Users need zero setup — AI works out of the box for everyone
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 const MODELS = [
-  { id: 'gemini-2.5-flash-preview-05-20', name: 'Gemini 2.5 Flash (Best)' },
-  { id: 'gemini-2.0-flash',               name: 'Gemini 2.0 Flash (Fast)' },
-  { id: 'gemini-1.5-flash',               name: 'Gemini 1.5 Flash (Stable)' },
-  { id: 'gemini-1.5-flash-8b',            name: 'Gemini 1.5 Flash 8B (Lite)' },
+  { id: 'gemini-2.5-flash-preview-05-20', name: 'Gemini 2.5 Flash ✦' },
+  { id: 'gemini-2.0-flash',               name: 'Gemini 2.0 Flash' },
+  { id: 'gemini-1.5-flash',               name: 'Gemini 1.5 Flash' },
+  { id: 'gemini-1.5-flash-8b',            name: 'Gemini 1.5 Flash 8B' },
 ];
-
-// API key — baked in at build time via VITE_GEMINI_API_KEY env var
-// Falls back to empty string; component shows a setup prompt if missing
-const BAKED_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 const SUGGESTIONS = [
   'Am I over budget?',
@@ -85,27 +82,19 @@ const SUGGESTIONS = [
   'What should I plan for tomorrow?',
 ];
 
-const LS_KEY = 'wandr_gemini_api_key';
-
 export const FinanceAI = ({ tripId, tripName, tripDestination, totalBudget, currencySymbol = '₹' }) => {
-  const [model, setModel]         = useState('gemini-2.5-flash-preview-05-20');
-  const [messages, setMessages]   = useState([]);
+  const [model, setModel]       = useState('gemini-2.5-flash-preview-05-20');
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
-  const [userKey, setUserKey]     = useState(() => localStorage.getItem(LS_KEY) || '');
-  const [keyDraft, setKeyDraft]   = useState('');
-  const [showKeyInput, setShowKeyInput] = useState(false);
-  const messagesEndRef             = useRef(null);
-
-  // Effective API key: baked-in env var takes priority, then user-saved key
-  const apiKey = BAKED_KEY || userKey;
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState(null);
+  const messagesEndRef           = useRef(null);
 
   // Welcome message on mount / trip change
   useEffect(() => {
     setMessages([{
       id: 'welcome', sender: 'ai',
-      text: `Hi! I'm your **Wandr AI Advisor** 🤖\n\nI've loaded the live budget, itinerary, and balances for **"${tripName}"**. Ask me anything:\n* *"Am I over budget?"*\n* *"Who owes the most?"*\n* *"Summarize expenses by category."*\n* *"Suggest activities for tomorrow."*\n\n_Powered by Google Gemini — free via Google AI Studio._`,
+      text: `Hi! I'm your **Wandr AI Advisor** 🤖\n\nI've loaded the live budget, itinerary, and balances for **"${tripName}"**. Ask me anything:\n* *"Am I over budget?"*\n* *"Who owes the most?"*\n* *"Summarize expenses by category."*\n* *"Suggest activities for tomorrow."*\n\n_Powered by Google Gemini 2.5 Flash — ready to help!_`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }]);
     setError(null);
@@ -114,22 +103,6 @@ export const FinanceAI = ({ tripId, tripName, tripDestination, totalBudget, curr
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
-
-  const saveUserKey = () => {
-    const trimmed = keyDraft.trim();
-    if (!trimmed) return;
-    localStorage.setItem(LS_KEY, trimmed);
-    setUserKey(trimmed);
-    setKeyDraft('');
-    setShowKeyInput(false);
-    setError(null);
-  };
-
-  const clearUserKey = () => {
-    localStorage.removeItem(LS_KEY);
-    setUserKey('');
-    setShowKeyInput(false);
-  };
 
   const buildSystemPrompt = async () => {
     try {
@@ -175,10 +148,6 @@ Rules:
 
   const sendMessage = async (text) => {
     if (!text.trim() || loading) return;
-    if (!apiKey) {
-      setShowKeyInput(true);
-      return;
-    }
 
     setInputText('');
     setError(null);
@@ -199,8 +168,7 @@ Rules:
         parts: [{ text: m.text }],
       }));
 
-      const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
-
+      const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${API_KEY}`;
       const body = {
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [
@@ -219,28 +187,24 @@ Rules:
         body: JSON.stringify(body),
       });
 
-      if (res.status === 400) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error?.message || 'Invalid request. Check your API key.');
-      }
-      if (res.status === 403 || res.status === 401) {
-        throw new Error('Invalid or expired API key. Click the key icon to update it.');
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('API key error. Please contact the app owner.');
       }
       if (res.status === 429) {
-        throw new Error('Rate limit reached. Gemini free tier allows 15 requests/min. Please wait a moment.');
+        throw new Error('Too many requests. Please wait a moment and try again.');
       }
       if (!res.ok) {
-        throw new Error(`Gemini API returned HTTP ${res.status}. Try again in a moment.`);
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody?.error?.message || `Request failed (HTTP ${res.status}). Try again.`);
       }
 
       const data = await res.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
       if (!reply) {
-        // Check if blocked by safety filters
         const reason = data?.candidates?.[0]?.finishReason;
-        if (reason === 'SAFETY') throw new Error('Response blocked by Gemini safety filters. Try rephrasing your question.');
-        throw new Error('The AI returned an empty response. Please try again.');
+        if (reason === 'SAFETY') throw new Error('Response blocked by safety filters. Try rephrasing.');
+        throw new Error('Empty response from AI. Please try again.');
       }
 
       setMessages(prev => [...prev, {
@@ -283,7 +247,7 @@ Rules:
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                Powered by Google Gemini · Free via AI Studio
+                Powered by Google Gemini · Free for all users
               </span>
             </div>
           </div>
@@ -302,17 +266,6 @@ Rules:
             </select>
           </div>
 
-          {/* Key button — only shown if no baked-in key */}
-          {!BAKED_KEY && (
-            <button
-              onClick={() => setShowKeyInput(v => !v)}
-              className={`p-2 rounded-xl transition-all ${userKey ? 'text-emerald-500 hover:bg-emerald-50' : 'text-amber-500 hover:bg-amber-50'}`}
-              title={userKey ? 'API key saved — click to change' : 'Set your Gemini API key'}
-            >
-              <KeyRound className="w-4 h-4" />
-            </button>
-          )}
-
           <button
             onClick={handleClear}
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
@@ -322,56 +275,6 @@ Rules:
           </button>
         </div>
       </div>
-
-      {/* API Key setup panel — shown when no key is available or user clicks key icon */}
-      {!BAKED_KEY && (showKeyInput || !userKey) && (
-        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
-          <div className="flex items-start gap-2">
-            <KeyRound className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-800 space-y-1">
-              <p className="font-extrabold">Gemini API Key Required</p>
-              <p>Get a free key at{' '}
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
-                   className="underline font-bold hover:text-amber-900">
-                  aistudio.google.com
-                </a>{' '}
-                — no credit card needed. Free tier: 15 req/min, 1M tokens/day.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={keyDraft}
-              onChange={e => setKeyDraft(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && saveUserKey()}
-              placeholder="Paste your AIza... key here"
-              className="flex-1 text-xs rounded-xl border-amber-200 border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-300 bg-white font-mono"
-            />
-            <button
-              onClick={saveUserKey}
-              disabled={!keyDraft.trim()}
-              className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl disabled:opacity-40 transition-colors"
-            >
-              Save
-            </button>
-            {userKey && (
-              <button
-                onClick={clearUserKey}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-gray-600 text-xs font-bold rounded-xl transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          {userKey && (
-            <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block" />
-              Key saved locally in your browser
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4 min-h-0">
@@ -433,7 +336,7 @@ Rules:
       </div>
 
       {/* Quick suggestions */}
-      {messages.length === 1 && !loading && apiKey && (
+      {messages.length === 1 && !loading && (
         <div className="flex flex-wrap gap-2 pb-3">
           {SUGGESTIONS.map(s => (
             <button
@@ -451,33 +354,29 @@ Rules:
       <form onSubmit={handleSubmit} className="border-t border-gray-100 pt-4 flex gap-2">
         <input
           type="text"
-          disabled={loading || !apiKey}
+          disabled={loading}
           value={inputText}
           onChange={e => setInputText(e.target.value)}
-          placeholder={
-            !apiKey ? 'Add your Gemini API key above to start chatting…'
-            : loading ? 'Waiting for response…'
-            : 'Ask about budgets, balances, or trip plans…'
-          }
+          placeholder={loading ? 'Waiting for response…' : 'Ask about budgets, balances, or trip plans…'}
           className="flex-1 text-sm rounded-2xl border-gray-200 px-4 py-3 border focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-transparent bg-white text-gray-800 transition-all font-sans disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={loading || !inputText.trim() || !apiKey}
+          disabled={loading || !inputText.trim()}
           className="p-3.5 bg-primary hover:bg-primary/95 text-white rounded-2xl shadow hover:shadow-md flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Send className="w-4 h-4" />
         </button>
       </form>
 
-      {/* Footer note */}
+      {/* Footer */}
       <p className="text-[10px] text-gray-400 text-center mt-2 font-medium">
         Powered by{' '}
         <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer"
            className="underline hover:text-accent transition-colors">
           Google Gemini
-        </a>{' '}
-        · Free tier · 15 req/min · 1M tokens/day · Key stored locally
+        </a>
+        {' '}· No setup needed · Works for all users
       </p>
     </div>
   );
