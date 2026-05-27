@@ -243,6 +243,7 @@ function App() {
         localStorage.removeItem('wandr_active_trip_id');
         setActiveTripId(null);
         setTripMeta(null);
+        setError('Invalid trip ID. Please select a trip from your saved trips.');
         return;
       }
     }
@@ -252,21 +253,38 @@ function App() {
     try {
       if (isMockMode) {
         const { data } = await mockFetchTripMeta(activeTripId);
+        if (!data) {
+          setError('Trip not found. It may have been deleted.');
+          localStorage.removeItem('wandr_active_trip_id');
+          setActiveTripId(null);
+          return;
+        }
         setTripMeta(data);
       } else {
         const { data, error: fetchErr } = await supabase
           .from('trips')
           .select('id, name, start_date, end_date, total_budget')
           .eq('id', activeTripId)
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
 
         if (fetchErr) {
-          setError(fetchErr.message || 'Failed to fetch trip metadata.');
-        } else {
-          setTripMeta(data);
+          console.error('Fetch trip error:', fetchErr);
+          setError('Failed to load trip: ' + (fetchErr.message || 'Unknown error'));
+          return;
         }
+        
+        if (!data) {
+          // Trip doesn't exist or user doesn't have access
+          setError('Trip not found or you don\'t have access. Please check your permissions or select a different trip.');
+          localStorage.removeItem('wandr_active_trip_id');
+          setActiveTripId(null);
+          return;
+        }
+        
+        setTripMeta(data);
       }
     } catch (err) {
+      console.error('Unexpected error loading trip:', err);
       setError('An unexpected error occurred while loading trip details.');
     } finally {
       setLoading(false);
