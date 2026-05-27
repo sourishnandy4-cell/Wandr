@@ -63,14 +63,17 @@ const renderMarkdown = (text) => {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Pollinations AI — completely free, no API key required
+// Uses the OpenAI-compatible endpoint at text.pollinations.ai/openai
 const POLLINATIONS_URL = 'https://text.pollinations.ai/openai';
 
-// Available free models on Pollinations (no key required for anonymous tier)
+// Available free models on Pollinations (no key required)
 const MODELS = [
-  { id: 'openai-large',  name: 'OpenAI Large (GPT-4o)' },
-  { id: 'openai',        name: 'OpenAI (GPT-4o mini)' },
-  { id: 'mistral',       name: 'Mistral' },
-  { id: 'deepseek',      name: 'DeepSeek' },
+  { id: 'openai-large',    name: 'GPT-4o (Best)' },
+  { id: 'openai',          name: 'GPT-4o mini (Fast)' },
+  { id: 'mistral',         name: 'Mistral' },
+  { id: 'deepseek',        name: 'DeepSeek' },
+  { id: 'claude-hybridspace', name: 'Claude (Hybrid)' },
 ];
 
 const SUGGESTIONS = [
@@ -167,7 +170,9 @@ Rules:
 
       const res = await fetch(POLLINATIONS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           model,
           messages: [
@@ -176,17 +181,24 @@ Rules:
             { role: 'user', content: text },
           ],
           seed: Math.floor(Math.random() * 99999),
+          private: true,
+          stream: false,
         }),
       });
 
+      if (res.status === 429) {
+        throw new Error('Rate limit reached. Pollinations allows 1 request per ~15 s on the free tier. Please wait a moment and try again.');
+      }
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `Request failed (HTTP ${res.status}). Try again in a moment.`);
+        const errBody = await res.text().catch(() => '');
+        let errMsg = `AI service returned HTTP ${res.status}.`;
+        try { errMsg = JSON.parse(errBody)?.error?.message || errMsg; } catch {}
+        throw new Error(errMsg + ' Try again in a moment.');
       }
 
       const data = await res.json();
-      const reply = data?.choices?.[0]?.message?.content;
-      if (!reply) throw new Error('Empty response from AI. Please try again.');
+      const reply = (data?.choices?.[0]?.message?.content || '').trim();
+      if (!reply) throw new Error('The AI returned an empty response. Please try again.');
 
       setMessages(prev => [...prev, {
         id: 'ai-' + Date.now(), sender: 'ai', text: reply,
@@ -228,7 +240,7 @@ Rules:
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                Free · No account needed · Powered by Pollinations AI
+                Free · No key needed · Pollinations AI
               </span>
             </div>
           </div>
@@ -351,7 +363,7 @@ Rules:
 
       {/* Footer note */}
       <p className="text-[10px] text-gray-400 text-center mt-2 font-medium">
-        Free AI via Pollinations · Anonymous tier · 1 request per 15 s · No data stored
+        Powered by <a href="https://pollinations.ai" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent transition-colors">Pollinations AI</a> · Completely free · No API key · No account needed
       </p>
     </div>
   );
