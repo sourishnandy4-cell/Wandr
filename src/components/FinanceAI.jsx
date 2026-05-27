@@ -68,7 +68,7 @@ const renderMarkdown = (text) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBdqs3_h56H6AA2cUBTVKCoZ3-z1DHOqgc';
 
 // WMO weather code descriptions
 const WMO_DESC = {
