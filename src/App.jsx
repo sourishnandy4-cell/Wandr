@@ -33,6 +33,25 @@ function App() {
   });
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // ── Stash any invite/join params from URL into localStorage immediately on
+  //    first load, before the user has logged in. Processed after login below.
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinPayload = urlParams.get('join');
+    const inviteTripId = urlParams.get('invite');
+    if (joinPayload) {
+      localStorage.setItem('wandr_pending_join', joinPayload);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('join');
+      window.history.replaceState({}, '', url);
+    } else if (inviteTripId) {
+      localStorage.setItem('wandr_pending_invite', inviteTripId);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('invite');
+      window.history.replaceState({}, '', url);
+    }
+  }, []);
   
   // Onboarding Form State
   const [newTripName, setNewTripName] = useState('');
@@ -120,34 +139,31 @@ function App() {
     }
   }, [currentUser]);
 
-  // Handle Invite Link Join Logic
+  // Handle Invite Link Join Logic — runs after login, reads stashed payload
   useEffect(() => {
     const processInvite = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const joinPayload = urlParams.get('join');   // new encoded snapshot link
-      const inviteTripId = urlParams.get('invite'); // legacy supabase link
+      if (!currentUser) return;
 
-      const clearUrl = () => {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('join');
-        url.searchParams.delete('invite');
-        window.history.replaceState({}, '', url);
+      const joinPayload = localStorage.getItem('wandr_pending_join');
+      const inviteTripId = localStorage.getItem('wandr_pending_invite');
+
+      const clearPending = () => {
+        localStorage.removeItem('wandr_pending_join');
+        localStorage.removeItem('wandr_pending_invite');
       };
 
-      // ── New encoded snapshot join (works in mock mode) ──────────────────
-      if (joinPayload && currentUser) {
+      // ── New encoded snapshot join ──────────────────────────────────────
+      if (joinPayload) {
         try {
           const json = decodeURIComponent(escape(atob(joinPayload)));
           const { trip, members, itinerary, expenses } = JSON.parse(json);
 
           if (!trip) throw new Error('Invalid share link — trip data missing.');
 
-          // Import trip if not already present
           if (!MOCK_TRIPS.find(t => t.id === trip.id)) {
             MOCK_TRIPS.push(trip);
           }
 
-          // Merge members, adding the current user
           const existingMembers = MOCK_TRIP_MEMBERS.find(m => m.trip_id === trip.id);
           const incomingMembers = members?.members || [];
           if (!incomingMembers.includes(currentUser.name)) incomingMembers.push(currentUser.name);
@@ -158,14 +174,12 @@ function App() {
             MOCK_TRIP_MEMBERS.push({ trip_id: trip.id, members: incomingMembers });
           }
 
-          // Import itinerary items
           if (Array.isArray(itinerary)) {
             itinerary.forEach(item => {
               if (!MOCK_ITINERARY_ITEMS.find(i => i.id === item.id)) MOCK_ITINERARY_ITEMS.push(item);
             });
           }
 
-          // Import expenses
           if (Array.isArray(expenses)) {
             expenses.forEach(exp => {
               if (!MOCK_EXPENSES.find(e => e.id === exp.id)) MOCK_EXPENSES.push(exp);
@@ -173,7 +187,7 @@ function App() {
           }
 
           saveMockData();
-          clearUrl();
+          clearPending();
 
           localStorage.setItem('wandr_active_trip_id', trip.id);
           setActiveTripId(trip.id);
@@ -183,51 +197,42 @@ function App() {
         } catch (err) {
           console.error('Failed to process join link:', err);
           alert('This share link appears to be invalid or corrupted. Ask the trip organiser to generate a new one.');
-          clearUrl();
+          clearPending();
         }
         return;
       }
 
-      // ── Legacy Supabase invite link ──────────────────────────────────────
-      if (inviteTripId && currentUser) {
+      // ── Legacy ?invite= link ───────────────────────────────────────────
+      if (inviteTripId) {
         try {
-          let tripExists = false;
-
           if (isMockMode) {
-            tripExists = MOCK_TRIPS.some(t => t.id === inviteTripId);
+            const tripExists = MOCK_TRIPS.some(t => t.id === inviteTripId);
             if (!tripExists) {
-              alert('This trip could not be found. Ask the organiser to share using the Invite button inside the trip.');
-              clearUrl();
+              alert('This invite link is outdated. Ask the trip organiser to share a new link from the Members tab.');
+              clearPending();
               return;
             }
-            const existingMemberRecord = MOCK_TRIP_MEMBERS.find(m => m.trip_id === inviteTripId);
-            if (existingMemberRecord) {
-              if (!existingMemberRecord.members.includes(currentUser.name)) {
-                existingMemberRecord.members.push(currentUser.name);
-                saveMockData();
-              }
+            const rec = MOCK_TRIP_MEMBERS.find(m => m.trip_id === inviteTripId);
+            if (rec) {
+              if (!rec.members.includes(currentUser.name)) { rec.members.push(currentUser.name); saveMockData(); }
             } else {
-              MOCK_TRIP_MEMBERS.push({ trip_id: inviteTripId, members: [currentUser.name] });
-              saveMockData();
+              MOCK_TRIP_MEMBERS.push({ trip_id: inviteTripId, members: [currentUser.name] }); saveMockData();
             }
           } else {
             const { error: joinErr } = await supabase.from('trip_members').insert([{
               trip_id: inviteTripId, user_id: currentUser.id, role: 'member'
             }]);
             if (joinErr && joinErr.code !== '23505') throw joinErr;
-            tripExists = true;
           }
-
-          clearUrl();
+          clearPending();
           localStorage.setItem('wandr_active_trip_id', inviteTripId);
           setActiveTripId(inviteTripId);
           await fetchExistingTrips();
           alert('You have successfully joined the trip!');
-
         } catch (err) {
           console.error('Failed to join trip:', err);
-          alert('Failed to join the trip. Please try again or contact the trip organizer.');
-          clearUrl();
+          alert('This invite link is outdated. Ask the trip organiser to share a new link from the Members tab.');
+          clearPending();
         }
       }
     };

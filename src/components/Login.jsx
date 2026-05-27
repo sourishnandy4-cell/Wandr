@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plane, Mail, Lock, User, ArrowRight, AlertCircle, Sparkles, Globe } from 'lucide-react';
+import { Plane, Mail, Lock, User, ArrowRight, AlertCircle, Sparkles, Globe, UserCheck } from 'lucide-react';
 import { supabase, isMockMode } from '../lib/supabaseClient';
 
 const getRegionDetails = (regionCode) => {
@@ -27,6 +27,12 @@ export const Login = ({ onLoginSuccess }) => {
   const [region, setRegion] = useState('IN');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Detect if there's a pending invite stashed by App.jsx
+  const hasPendingInvite = !!(
+    localStorage.getItem('wandr_pending_join') ||
+    localStorage.getItem('wandr_pending_invite')
+  );
 
   const demoUsers = [
     { name: 'Sarah J.', initials: 'SJ', email: 'sarah@example.com', role: 'Trip Organizer' },
@@ -190,6 +196,17 @@ export const Login = ({ onLoginSuccess }) => {
             Plan, collaborate, and settle travel expenses beautifully.
           </p>
         </div>
+
+        {/* Pending invite banner */}
+        {hasPendingInvite && (
+          <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-emerald-800 text-sm">
+            <UserCheck className="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-600" />
+            <div>
+              <p className="font-bold text-emerald-800 text-xs">You've been invited to a trip!</p>
+              <p className="text-xs text-emerald-700 mt-0.5">Sign in or create an account below and the trip will load automatically.</p>
+            </div>
+          </div>
+        )}
 
         {/* Tab Toggle */}
         <div className="flex bg-gray-100 p-1.5 rounded-xl border border-gray-200/50">
