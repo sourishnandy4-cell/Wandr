@@ -170,6 +170,169 @@ const EMERGENCY_CONTACTS = {
       { icon: '🆘', label: 'Civil Defense',         number: '199'           },
     ],
   },
+  GR: {
+    label: '🇬🇷 Greece',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies (EU)',  number: '112'           },
+      { icon: '🚔', label: 'Police',                number: '100'           },
+      { icon: '🚑', label: 'Ambulance (EKAB)',      number: '166'           },
+      { icon: '🔥', label: 'Fire',                  number: '199'           },
+      { icon: '⛵', label: 'Coast Guard',           number: '108'           },
+      { icon: '✈️', label: 'Tourist Police',        number: '171'           },
+    ],
+  },
+  PT: {
+    label: '🇵🇹 Portugal',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies (EU)',  number: '112'           },
+      { icon: '🚔', label: 'PSP Police',            number: '112'           },
+      { icon: '🚑', label: 'Ambulance (INEM)',      number: '112'           },
+      { icon: '🔥', label: 'Fire',                  number: '112'           },
+      { icon: '✈️', label: 'SEF (Immigration)',     number: '808 202 653'   },
+    ],
+  },
+  NL: {
+    label: '🇳🇱 Netherlands',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies (EU)',  number: '112'           },
+      { icon: '🚔', label: 'Police (non-emergency)',number: '0900-8844'     },
+      { icon: '🏥', label: 'GP / Medical Advice',  number: '0900-1010'     },
+    ],
+  },
+  CH: {
+    label: '🇨🇭 Switzerland',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '117'           },
+      { icon: '🚑', label: 'Ambulance',             number: '144'           },
+      { icon: '🔥', label: 'Fire',                  number: '118'           },
+      { icon: '🆘', label: 'All Emergencies (EU)',  number: '112'           },
+      { icon: '🏔️', label: 'Mountain Rescue (REGA)',number: '1414'          },
+    ],
+  },
+  TR: {
+    label: '🇹🇷 Turkey',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '155'           },
+      { icon: '🚑', label: 'Ambulance',             number: '112'           },
+      { icon: '🔥', label: 'Fire',                  number: '110'           },
+      { icon: '🏥', label: 'Emergency',             number: '112'           },
+      { icon: '✈️', label: 'Tourist Police',        number: '527'           },
+    ],
+  },
+  HR: {
+    label: '🇭🇷 Croatia',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies (EU)',  number: '112'           },
+      { icon: '🚔', label: 'Police',                number: '192'           },
+      { icon: '🚑', label: 'Ambulance',             number: '194'           },
+      { icon: '🔥', label: 'Fire',                  number: '193'           },
+    ],
+  },
+  ID: {
+    label: '🇮🇩 Indonesia / Bali',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '110'           },
+      { icon: '🚑', label: 'Ambulance',             number: '118'           },
+      { icon: '🔥', label: 'Fire',                  number: '113'           },
+      { icon: '🆘', label: 'National Emergency',    number: '112'           },
+      { icon: '✈️', label: 'Tourist (Bali)',         number: '0361-224111'   },
+    ],
+  },
+  MY: {
+    label: '🇲🇾 Malaysia',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies',       number: '999'           },
+      { icon: '🚑', label: 'Ambulance',             number: '999'           },
+      { icon: '✈️', label: 'Tourist Hotline',       number: '1300-88-5050'  },
+    ],
+  },
+  PH: {
+    label: '🇵🇭 Philippines',
+    lines: [
+      { icon: '🆘', label: 'National Emergency',    number: '911'           },
+      { icon: '🚔', label: 'PNP Police',            number: '117'           },
+      { icon: '✈️', label: 'DOT Tourist Hotline',   number: '1800-10-867-5347'},
+    ],
+  },
+  VN: {
+    label: '🇻🇳 Vietnam',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '113'           },
+      { icon: '🚑', label: 'Ambulance',             number: '115'           },
+      { icon: '🔥', label: 'Fire',                  number: '114'           },
+      { icon: '✈️', label: 'Tourist Hotline',       number: '1800-599-920'  },
+    ],
+  },
+  NP: {
+    label: '🇳🇵 Nepal',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '100'           },
+      { icon: '🚑', label: 'Ambulance',             number: '102'           },
+      { icon: '🔥', label: 'Fire',                  number: '101'           },
+      { icon: '✈️', label: 'Tourist Police',        number: '01-4247041'    },
+    ],
+  },
+  ZA: {
+    label: '🇿🇦 South Africa',
+    lines: [
+      { icon: '🚔', label: 'Police (SAPS)',         number: '10111'         },
+      { icon: '🚑', label: 'Ambulance',             number: '10177'         },
+      { icon: '🆘', label: 'All Emergencies',       number: '112'           },
+    ],
+  },
+  EG: {
+    label: '🇪🇬 Egypt',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '122'           },
+      { icon: '🚑', label: 'Ambulance',             number: '123'           },
+      { icon: '🔥', label: 'Fire',                  number: '180'           },
+      { icon: '✈️', label: 'Tourist Police',        number: '126'           },
+    ],
+  },
+  MA: {
+    label: '🇲🇦 Morocco',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '190'           },
+      { icon: '🚑', label: 'Ambulance (SAMU)',      number: '150'           },
+      { icon: '🔥', label: 'Fire',                  number: '15'            },
+      { icon: '👮', label: 'Gendarmerie',           number: '177'           },
+    ],
+  },
+  AR: {
+    label: '🇦🇷 Argentina',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '101'           },
+      { icon: '🚑', label: 'Ambulance (SAME)',      number: '107'           },
+      { icon: '🔥', label: 'Fire',                  number: '100'           },
+      { icon: '🆘', label: 'Emergency',             number: '911'           },
+    ],
+  },
+  CL: {
+    label: '🇨🇱 Chile',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies',       number: '133'           },
+      { icon: '🚔', label: 'Carabineros (Police)',  number: '133'           },
+      { icon: '🚑', label: 'Ambulance (SAMU)',      number: '131'           },
+      { icon: '🔥', label: 'Fire',                  number: '132'           },
+    ],
+  },
+  PE: {
+    label: '🇵🇪 Peru',
+    lines: [
+      { icon: '🚔', label: 'Police',                number: '105'           },
+      { icon: '🚑', label: 'Ambulance (SAMU)',      number: '106'           },
+      { icon: '🔥', label: 'Fire',                  number: '116'           },
+      { icon: '✈️', label: 'Tourist Police (iPeru)',number: '574-8000'      },
+    ],
+  },
+  CA: {
+    label: '🇨🇦 Canada',
+    lines: [
+      { icon: '🆘', label: 'All Emergencies',       number: '911'           },
+      { icon: '🚔', label: 'Non-Emergency (RCMP)',  number: '310-6060'      },
+      { icon: '☠️', label: 'Poison Control',        number: '1-800-268-9017'},
+    ],
+  },
 };
 
 // ── Destination → region code mapper ─────────────────────────────────────────
@@ -177,7 +340,9 @@ const DESTINATION_MAP = [
   // Japan
   { keys: ['japan','tokyo','osaka','kyoto','hiroshima','nagoya','sapporo','fukuoka','okinawa','nara','shibuya','shinjuku','akihabara'], code: 'JP' },
   // USA
-  { keys: ['usa','united states','america','new york','los angeles','san francisco','chicago','miami','las vegas','hawaii','california','texas','boston','seattle','washington dc','dc'], code: 'US' },
+  { keys: ['usa','united states','america','new york','los angeles','san francisco','chicago','miami','las vegas','hawaii','california','texas','boston','seattle','washington dc'], code: 'US' },
+  // Canada
+  { keys: ['canada','toronto','vancouver','montreal','calgary','ottawa','quebec'], code: 'CA' },
   // UK
   { keys: ['uk','united kingdom','england','britain','london','manchester','edinburgh','scotland','wales','birmingham','liverpool'], code: 'UK' },
   // Australia
@@ -185,29 +350,63 @@ const DESTINATION_MAP = [
   // Singapore
   { keys: ['singapore'], code: 'SG' },
   // Thailand
-  { keys: ['thailand','bangkok','phuket','chiang mai','koh samui','pattaya'], code: 'TH' },
+  { keys: ['thailand','bangkok','phuket','chiang mai','koh samui','pattaya','chiang rai'], code: 'TH' },
   // UAE
-  { keys: ['uae','dubai','abu dhabi','united arab emirates','sharjah'], code: 'AE' },
+  { keys: ['uae','dubai','abu dhabi','united arab emirates','sharjah','ajman'], code: 'AE' },
   // France
-  { keys: ['france','paris','lyon','marseille','nice','bordeaux','strasbourg'], code: 'FR' },
+  { keys: ['france','paris','lyon','marseille','nice','bordeaux','strasbourg','toulouse'], code: 'FR' },
   // Germany
-  { keys: ['germany','berlin','munich','hamburg','frankfurt','cologne','stuttgart'], code: 'DE' },
+  { keys: ['germany','berlin','munich','hamburg','frankfurt','cologne','stuttgart','düsseldorf'], code: 'DE' },
   // Italy
-  { keys: ['italy','rome','milan','venice','florence','naples','sicily','turin'], code: 'IT' },
+  { keys: ['italy','rome','milan','venice','florence','naples','sicily','turin','amalfi','positano'], code: 'IT' },
   // Spain
-  { keys: ['spain','madrid','barcelona','seville','valencia','malaga','ibiza'], code: 'ES' },
+  { keys: ['spain','madrid','barcelona','seville','valencia','malaga','ibiza','granada','bilbao'], code: 'ES' },
+  // Greece  ← dedicated entry, no longer falls to EU generic
+  { keys: ['greece','athens','thessaloniki','larissa','patras','heraklion','rhodes','mykonos','santorini','corfu','crete','zakynthos','meteora','delphi','olympia','sparta'], code: 'GR' },
+  // Croatia
+  { keys: ['croatia','dubrovnik','split','zagreb','hvar','pula','zadar'], code: 'HR' },
+  // Portugal
+  { keys: ['portugal','lisbon','porto','algarve','madeira','azores','faro','coimbra'], code: 'PT' },
+  // Netherlands
+  { keys: ['netherlands','amsterdam','rotterdam','the hague','utrecht','eindhoven','holland'], code: 'NL' },
+  // Switzerland
+  { keys: ['switzerland','zurich','geneva','basel','bern','lausanne','interlaken','lucerne','zermatt'], code: 'CH' },
+  // Turkey
+  { keys: ['turkey','istanbul','ankara','antalya','cappadocia','izmir','bodrum','ephesus','pamukkale'], code: 'TR' },
   // China
-  { keys: ['china','beijing','shanghai','guangzhou','shenzhen','chengdu','hong kong'], code: 'CN' },
+  { keys: ['china','beijing','shanghai','guangzhou','shenzhen','chengdu','hong kong','macau','xian'], code: 'CN' },
   // South Korea
-  { keys: ['south korea','korea','seoul','busan','jeju','incheon'], code: 'KR' },
+  { keys: ['south korea','korea','seoul','busan','jeju','incheon','gyeongju'], code: 'KR' },
+  // Indonesia / Bali
+  { keys: ['indonesia','bali','jakarta','yogyakarta','lombok','komodo','ubud','seminyak'], code: 'ID' },
+  // Malaysia
+  { keys: ['malaysia','kuala lumpur','penang','langkawi','kota kinabalu','malacca'], code: 'MY' },
+  // Vietnam
+  { keys: ['vietnam','hanoi','ho chi minh','hoi an','da nang','ha long','nha trang','hue'], code: 'VN' },
+  // Philippines
+  { keys: ['philippines','manila','cebu','palawan','boracay','davao','bohol'], code: 'PH' },
+  // Nepal
+  { keys: ['nepal','kathmandu','pokhara','everest','chitwan','lumbini','bhaktapur'], code: 'NP' },
   // India
-  { keys: ['india','mumbai','delhi','bangalore','chennai','kolkata','hyderabad','jaipur','goa','kerala','agra'], code: 'IN' },
+  { keys: ['india','mumbai','delhi','bangalore','chennai','kolkata','hyderabad','jaipur','goa','kerala','agra','varanasi','pune'], code: 'IN' },
   // Mexico
-  { keys: ['mexico','cancun','mexico city','guadalajara','playa del carmen','tulum'], code: 'MX' },
+  { keys: ['mexico','cancun','mexico city','guadalajara','playa del carmen','tulum','oaxaca','cabo'], code: 'MX' },
   // Brazil
-  { keys: ['brazil','rio de janeiro','sao paulo','salvador','fortaleza'], code: 'BR' },
-  // Europe generic
-  { keys: ['europe','schengen','netherlands','amsterdam','belgium','brussels','switzerland','zurich','austria','vienna','portugal','lisbon','sweden','stockholm','norway','oslo','denmark','copenhagen','greece','athens','croatia','dubrovnik'], code: 'EU' },
+  { keys: ['brazil','rio de janeiro','sao paulo','salvador','fortaleza','recife','manaus','florianopolis'], code: 'BR' },
+  // Argentina
+  { keys: ['argentina','buenos aires','mendoza','bariloche','córdoba','ushuaia','patagonia'], code: 'AR' },
+  // Chile
+  { keys: ['chile','santiago','valparaiso','torres del paine','atacama','easter island'], code: 'CL' },
+  // Peru
+  { keys: ['peru','lima','cusco','machu picchu','arequipa','lake titicaca','nazca'], code: 'PE' },
+  // South Africa
+  { keys: ['south africa','cape town','johannesburg','durban','kruger','soweto','pretoria'], code: 'ZA' },
+  // Egypt
+  { keys: ['egypt','cairo','luxor','aswan','hurghada','sharm el sheikh','alexandria','giza'], code: 'EG' },
+  // Morocco
+  { keys: ['morocco','marrakech','casablanca','fez','rabat','agadir','tangier','sahara'], code: 'MA' },
+  // Europe generic fallback (Austria, Belgium, Scandinavia, Balkans etc.)
+  { keys: ['europe','schengen','austria','vienna','belgium','brussels','sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki','poland','warsaw','czech','prague','hungary','budapest','romania','bucharest','slovakia','slovenia','estonia','latvia','lithuania','luxembourg','malta','cyprus'], code: 'EU' },
 ];
 
 // Returns region code from a destination string, falling back to user's region
