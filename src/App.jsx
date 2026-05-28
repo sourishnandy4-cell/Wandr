@@ -760,6 +760,7 @@ function App() {
             onSwitchTrip={handleSwitchTrip}
             onProfileClick={() => setShowProfileModal(true)}
             onMenuClick={() => setMobileMenuOpen(true)}
+            onNavigate={setActiveTab}
           />
 
           {/* Dynamic Tab Views */}

@@ -1,11 +1,85 @@
-import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, BellOff, Menu } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Bell, ChevronDown, BellOff, Menu, Loader2, MapPin, DollarSign, Calendar, X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { fetchItinerary } from '../lib/itineraryService';
+import { fetchRecentExpenses } from '../lib/expenseService';
 
-export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTrip, onProfileClick, onMenuClick }) => {
+export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTrip, onProfileClick, onMenuClick, onNavigate }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
+  // ── Search state ──────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchDebounceRef = useRef(null);
+  const searchWrapperRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const q = e.target.value;
+    setSearchQuery(q);
+    if (!q.trim()) { setSearchResults([]); setShowResults(false); return; }
+    clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      setShowResults(true);
+      const query = q.toLowerCase();
+      const results = [];
+      try {
+        const { data: itineraryData } = await fetchItinerary(tripId);
+        (itineraryData || []).forEach(item => {
+          if (
+            item.title?.toLowerCase().includes(query) ||
+            item.location?.toLowerCase().includes(query) ||
+            item.notes?.toLowerCase().includes(query)
+          ) {
+            results.push({ type: 'activity', id: item.id, title: item.title, subtitle: item.location || 'No location', tab: 'itinerary' });
+          }
+        });
+      } catch (_) {}
+      try {
+        const { data: expenseData } = await fetchRecentExpenses(tripId);
+        (expenseData || []).forEach(exp => {
+          if (
+            exp.description?.toLowerCase().includes(query) ||
+            exp.category?.toLowerCase().includes(query) ||
+            exp.paid_by?.toLowerCase().includes(query)
+          ) {
+            results.push({ type: 'expense', id: exp.id, title: exp.description, subtitle: `${exp.category || 'General'} · Paid by ${exp.paid_by}`, tab: 'expenses' });
+          }
+        });
+      } catch (_) {}
+      setSearchResults(results);
+      setSearchLoading(false);
+    }, 300);
+  };
+
+  const handleResultClick = (result) => {
+    setShowResults(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    if (onNavigate) onNavigate(result.tab);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowResults(false);
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   const hasUnread = notifications.some(n => n.unread);
 
@@ -44,14 +118,59 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
         </div>
 
         {/* Center: Search Bar */}
-        <div className="hidden lg:flex flex-1 max-w-md">
+        <div className="hidden lg:flex flex-1 max-w-md" ref={searchWrapperRef}>
           <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => searchQuery.trim() && setShowResults(true)}
               placeholder="Search activities, expenses..."
-              className="w-full pl-12 pr-4 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all duration-200"
+              className="w-full pl-12 pr-10 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all duration-200 dark:bg-dark-card dark:border-dark-border dark:text-dark-text"
             />
+            {searchQuery && (
+              <button onClick={handleClearSearch} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Results Dropdown */}
+            {showResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-dark-card rounded-2xl shadow-xl border border-gray-100 dark:border-dark-border z-50 overflow-hidden animate-fadeIn">
+                {searchLoading ? (
+                  <div className="flex items-center gap-2 px-4 py-4 text-sm text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Searching…
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="px-4 py-4 text-sm text-gray-400 text-center">No results for "{searchQuery}"</div>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-50 dark:divide-dark-border">
+                    {searchResults.map((r) => (
+                      <button
+                        key={`${r.type}-${r.id}`}
+                        onClick={() => handleResultClick(r)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-dark-bg text-left transition-colors"
+                      >
+                        <div className={`p-1.5 rounded-lg flex-shrink-0 ${r.type === 'activity' ? 'bg-accent/10 text-accent' : 'bg-green-50 text-green-600'}`}>
+                          {r.type === 'activity' ? <Calendar className="w-3.5 h-3.5" /> : <DollarSign className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-primary dark:text-dark-text truncate">{r.title}</p>
+                          <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+                            {r.type === 'activity' && <MapPin className="w-3 h-3 inline flex-shrink-0" />}
+                            {r.subtitle}
+                          </p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${r.type === 'activity' ? 'bg-accent/10 text-accent' : 'bg-green-50 text-green-600'}`}>
+                          {r.type === 'activity' ? 'Activity' : 'Expense'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
