@@ -2,14 +2,281 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 body {
   margin: 0;
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #F9F8F4;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+* { box-sizing: border-box; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPLETE DARK MODE — covers every component, surface, text, border, input
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Root ── */
+html.dark,
+.dark body,
+.dark #root {
+  background-color: #0f1117 !important;
+  color: #e2e8f0;
 }
 
-* {
-  box-sizing: border-box;
+/* ── 2. Page-level wrappers (Login, Onboarding, Loading, Error) ── */
+.dark .bg-\[\#F9F8F4\]      { background-color: #0f1117 !important; }
+.dark .bg-warm-bg           { background-color: #0f1117 !important; }
+.dark .bg-dark-bg           { background-color: #0f1117 !important; }
+
+/* ── 3. Primary card surfaces ── */
+.dark .bg-white             { background-color: #1e2433 !important; }
+
+/* ── 4. Secondary / inner surfaces ── */
+.dark .bg-slate-50          { background-color: #161b27 !important; }
+.dark .bg-gray-50           { background-color: #161b27 !important; }
+.dark .bg-slate-100         { background-color: #1a2035 !important; }
+.dark .bg-gray-100          { background-color: #1a2035 !important; }
+.dark .bg-slate-200         { background-color: #222d42 !important; }
+.dark .bg-gray-200          { background-color: #222d42 !important; }
+
+/* Opacity variants used as chat bubble backgrounds */
+.dark .bg-slate-50\/50      { background-color: rgba(22, 27, 39, 0.5) !important; }
+
+/* ── 5. Header (has explicit dark:bg-dark-card which equals #2d2d2d) ──
+   Already handled by tailwind's dark: variant — no override needed.       */
+
+/* ── 6. Hover surface overrides ── */
+.dark .hover\:bg-slate-50:hover  { background-color: #1a2035 !important; }
+.dark .hover\:bg-slate-100:hover { background-color: #222d42 !important; }
+.dark .hover\:bg-slate-200:hover { background-color: #2d3a52 !important; }
+.dark .hover\:bg-gray-50:hover   { background-color: #1a2035 !important; }
+.dark .hover\:bg-gray-100:hover  { background-color: #222d42 !important; }
+.dark .hover\:bg-gray-200:hover  { background-color: #2d3a52 !important; }
+
+/* ── 7. Text colors ── */
+.dark .text-gray-900   { color: #f1f5f9 !important; }
+.dark .text-gray-800   { color: #e2e8f0 !important; }
+.dark .text-gray-700   { color: #cbd5e1 !important; }
+.dark .text-gray-600   { color: #94a3b8 !important; }
+.dark .text-gray-500   { color: #64748b !important; }
+.dark .text-gray-400   { color: #475569 !important; }
+
+/* ── 8. Borders ── */
+.dark .border-gray-50    { border-color: #1e2433 !important; }
+.dark .border-gray-100   { border-color: #2a3347 !important; }
+.dark .border-gray-150   { border-color: #2a3347 !important; }
+.dark .border-gray-200   { border-color: #374155 !important; }
+.dark .border-slate-50   { border-color: #1e2433 !important; }
+.dark .border-slate-100  { border-color: #2a3347 !important; }
+.dark .border-slate-150  { border-color: #2a3347 !important; }
+.dark .border-slate-200  { border-color: #374155 !important; }
+.dark .border-white      { border-color: #2a3347 !important; }
+.dark .border-dashed     { border-color: #2a3347 !important; }
+
+/* opacity-based border used by some cards */
+.dark .border-gray-100\/50 { border-color: rgba(42, 51, 71, 0.5) !important; }
+
+/* ── 9. Dividers ── */
+.dark .divide-y > * + * { border-color: #2a3347 !important; }
+.dark .divide-gray-50 > * + * { border-color: #1e2433 !important; }
+
+/* ── 10. Ring ── */
+.dark .ring-white { --tw-ring-color: #2a3347 !important; }
+.dark .ring-4.ring-white { --tw-ring-color: #1e2433 !important; }
+
+/* ── 11. Form inputs / selects / textareas ── */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.dark select,
+.dark textarea {
+  background-color: #161b27 !important;
+  border-color: #374155 !important;
+  color: #e2e8f0 !important;
+  color-scheme: dark;
 }
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #475569 !important;
+}
+/* Date/time pickers */
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark input[type="time"] {
+  color-scheme: dark;
+}
+
+/* ── 12. Skeleton shimmer ── */
+.dark .animate-pulse .bg-slate-200,
+.dark .animate-pulse .bg-slate-100,
+.dark .animate-pulse .bg-gray-200,
+.dark .animate-pulse .bg-gray-100 {
+  background-color: #222d42 !important;
+}
+
+/* ── 13. Shadows ── */
+.dark .shadow-sm   { box-shadow: 0 1px 3px rgba(0,0,0,0.5)  !important; }
+.dark .shadow      { box-shadow: 0 2px 6px rgba(0,0,0,0.5)  !important; }
+.dark .shadow-md   { box-shadow: 0 4px 12px rgba(0,0,0,0.6) !important; }
+.dark .shadow-lg   { box-shadow: 0 8px 24px rgba(0,0,0,0.7) !important; }
+.dark .shadow-xl   { box-shadow: 0 16px 36px rgba(0,0,0,0.7) !important; }
+.dark .shadow-2xl  { box-shadow: 0 24px 48px rgba(0,0,0,0.8) !important; }
+
+/* ── 14. Primary / accent colour opacity tints (used as button bg, chips) ── */
+.dark .bg-primary\/5   { background-color: rgba(74, 95, 127, 0.12) !important; }
+.dark .bg-primary\/10  { background-color: rgba(74, 95, 127, 0.18) !important; }
+.dark .bg-primary\/15  { background-color: rgba(74, 95, 127, 0.22) !important; }
+.dark .bg-accent\/5    { background-color: rgba(232, 168, 124, 0.08) !important; }
+.dark .bg-accent\/10   { background-color: rgba(232, 168, 124, 0.14) !important; }
+.dark .bg-accent\/15   { background-color: rgba(232, 168, 124, 0.14) !important; }
+.dark .bg-accent\/20   { background-color: rgba(232, 168, 124, 0.18) !important; }
+.dark .hover\:bg-accent\/5:hover  { background-color: rgba(232, 168, 124, 0.12) !important; }
+.dark .hover\:bg-accent\/10:hover { background-color: rgba(232, 168, 124, 0.18) !important; }
+.dark .hover\:bg-accent\/20:hover { background-color: rgba(232, 168, 124, 0.22) !important; }
+
+/* ── 15. Semantic colours ── */
+
+/* Red / error */
+.dark .bg-red-50            { background-color: #2d1515 !important; }
+.dark .border-red-100       { border-color: #7f1d1d !important; }
+.dark .text-red-600         { color: #f87171 !important; }
+.dark .text-red-500         { color: #f87171 !important; }
+.dark .hover\:text-red-500:hover { color: #f87171 !important; }
+.dark .hover\:bg-red-50:hover    { background-color: #3d1a1a !important; }
+
+/* Green / success */
+.dark .bg-emerald-50         { background-color: #052e16 !important; }
+.dark .border-emerald-100    { border-color: #14532d !important; }
+.dark .border-emerald-200    { border-color: #166534 !important; }
+.dark .text-emerald-700      { color: #4ade80 !important; }
+.dark .text-emerald-800      { color: #86efac !important; }
+.dark .text-emerald-600      { color: #34d399 !important; }
+.dark .text-emerald-500      { color: #34d399 !important; }
+.dark .bg-green-50           { background-color: #052e16 !important; }
+.dark .hover\:bg-green-100:hover { background-color: #14532d !important; }
+.dark .text-green-600        { color: #4ade80 !important; }
+
+/* Blue */
+.dark .bg-blue-50            { background-color: #0c1a3a !important; }
+.dark .border-blue-100       { border-color: #1e3a5f !important; }
+.dark .text-blue-700         { color: #93c5fd !important; }
+.dark .text-blue-500         { color: #60a5fa !important; }
+.dark .bg-blue-100           { background-color: #0c1a3a !important; }
+.dark .text-blue-600         { color: #60a5fa !important; }
+.dark .text-blue-400         { color: #60a5fa !important; }
+
+/* Orange / amber */
+.dark .bg-orange-50          { background-color: #2d1505 !important; }
+.dark .bg-orange-100         { background-color: #3d1f0a !important; }
+.dark .hover\:bg-orange-100:hover { background-color: #4a2510 !important; }
+.dark .text-orange-500       { color: #fb923c !important; }
+.dark .text-orange-400       { color: #fb923c !important; }
+
+/* Purple */
+.dark .bg-purple-50          { background-color: #1e0a2d !important; }
+.dark .bg-purple-100         { background-color: #3b0764 !important; }
+.dark .hover\:bg-purple-100:hover { background-color: #4c1079 !important; }
+.dark .text-purple-500       { color: #c084fc !important; }
+.dark .text-purple-600       { color: #c084fc !important; }
+
+/* Teal */
+.dark .bg-teal-100           { background-color: #042f2e !important; }
+.dark .text-teal-600         { color: #2dd4bf !important; }
+
+/* Pink */
+.dark .bg-pink-100           { background-color: #500724 !important; }
+.dark .text-pink-600         { color: #f472b6 !important; }
+
+/* Sky */
+.dark .bg-sky-300            { color: #7dd3fc !important; }
+.dark .text-sky-300          { color: #7dd3fc !important; }
+
+/* Yellow */
+.dark .text-yellow-400       { color: #facc15 !important; }
+.dark .text-yellow-500       { color: #eab308 !important; }
+
+/* ── 16. Toggle button (Sign In / Create Account tab) ── */
+.dark .bg-gray-100           { background-color: #1a2035 !important; }
+.dark .border-gray-200\/50   { border-color: rgba(55, 65, 85, 0.5) !important; }
+
+/* Nested white bg inside the toggle — active pill */
+.dark .bg-gray-100 .bg-white { background-color: #2a3347 !important; }
+
+/* ── 17. Onboarding: Right column saved trips ── */
+.dark .bg-slate-100          { background-color: #1a2035 !important; }
+.dark .text-slate-500        { color: #64748b !important; }
+.dark .hover\:bg-accent\/5:hover { background-color: rgba(232, 168, 124, 0.1) !important; }
+
+/* ── 18. ProfileModal backdrop ── */
+.dark .bg-primary\/45        { background-color: rgba(15, 17, 23, 0.82) !important; }
+.dark .backdrop-blur-sm      { /* already CSS — keep */ }
+
+/* ── 19. Notification dropdown ── */
+.dark .bg-white.rounded-2xl,
+.dark .bg-white.rounded-xl,
+.dark .bg-white.rounded-3xl {
+  background-color: #1e2433 !important;
+}
+
+/* ── 20. Recharts chart labels (SVG text) ── */
+.dark .recharts-text { fill: #94a3b8 !important; }
+
+/* ── 21. Progress bar background track ── */
+.dark .bg-slate-100.rounded-full { background-color: #1a2035 !important; }
+
+/* ── 22. Map container ── */
+.dark .bg-slate-100.rounded-2xl { background-color: #1a2035 !important; }
+
+/* ── 23. Budget chart empty state / no expenses ── */
+.dark .border-dashed.border-gray-200 { border-color: #2a3347 !important; }
+
+/* ── 24. Leaflet map popup (injected into DOM by Leaflet) ── */
+.dark .leaflet-popup-content-wrapper { background: #1e2433 !important; color: #e2e8f0 !important; }
+.dark .leaflet-popup-tip             { background: #1e2433 !important; }
+
+/* ── 25. Weather temp chart bars ── */
+.dark .bg-red-100  { background-color: rgba(239, 68, 68, 0.25) !important; }
+.dark .bg-blue-100 { background-color: rgba(96, 165, 250, 0.25) !important; }
+.dark .hover\:bg-red-200:hover  { background-color: rgba(239, 68, 68, 0.35) !important; }
+.dark .hover\:bg-blue-200:hover { background-color: rgba(96, 165, 250, 0.35) !important; }
+
+/* ── 26. Auth toggle inner active pill ── */
+/* Specific fix: bg-white inside bg-gray-100 tab container */
+.dark .flex.bg-gray-100 > .bg-white {
+  background-color: #2a3347 !important;
+}
+
+/* ── 27. border-t, border-b subtle lines inside dark cards ── */
+.dark .border-t { border-top-color: #2a3347 !important; }
+.dark .border-b { border-bottom-color: #2a3347 !important; }
+.dark .border-r { border-right-color: #2a3347 !important; }
+.dark .border-l { border-left-color: #2a3347 !important; }
+
+/* ── 28. White/10 and opacity layers on already-dark sidebar ── */
+/* Sidebar bg-primary stays as-is — already dark */
+
+/* ── 29. Gradient header in TripMembers stays as-is (bg-primary = dark) ── */
+
+/* ── 30. Packing checklist row hover ── */
+.dark .hover\:bg-slate-50:hover { background-color: #1a2035 !important; }
+
+/* ── 31. Quick-demo divider line ── */
+.dark .border-gray-250\/60 { border-color: rgba(55, 65, 85, 0.6) !important; }
+
+/* ── 32. Inline badge for gray-450 (custom non-tailwind shade used in code) ── */
+.dark .text-gray-450 { color: #64748b !important; }
+
+/* ── 33. Finance AI chat bubbles ── */
+/* User bubble uses bg-accent/15 — already covered above */
+/* AI bubble uses bg-slate-50 — already covered */
+
+/* ── 34. Settings card ── */
+/* bg-white > bg-primary/10 icon area — already covered */
+
+/* ── 35. TravelDocs toggle active bg-primary text-white — stays as-is (intentional) ── */
+
+/* ── 36. Scrollbars (optional polish) ── */
+.dark ::-webkit-scrollbar       { width: 6px; height: 6px; }
+.dark ::-webkit-scrollbar-track { background: #161b27; }
+.dark ::-webkit-scrollbar-thumb { background: #2a3347; border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #374155; }
