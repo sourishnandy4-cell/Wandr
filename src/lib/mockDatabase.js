@@ -207,6 +207,14 @@ export const mockSettleBalances = async (tripId) => {
   return { data: { success: true }, error: null };
 };
 
+export const mockUpdateTripBudget = async (tripId, newBudget) => {
+  const trip = MOCK_TRIPS.find(t => t.id === tripId);
+  if (!trip) return { data: null, error: { message: 'Trip not found' } };
+  trip.total_budget = Number(newBudget);
+  saveMockData();
+  return { data: trip, error: null };
+};
+
 export const mockFetchTripMembers = async (tripId) => {
   const entry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === tripId);
   return { data: entry ? entry.members : [], error: null };

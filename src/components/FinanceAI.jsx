@@ -5,7 +5,7 @@ import {
   TrendingUp, Compass, Lightbulb, Settings,
 } from 'lucide-react';
 import { fetchItinerary, addItineraryItem } from '../lib/itineraryService';
-import { fetchRecentExpenses, fetchTripMembers, addExpense } from '../lib/expenseService';
+import { fetchRecentExpenses, fetchTripMembers, addExpense, updateTripBudget } from '../lib/expenseService';
 import { calculateNetBalances } from '../lib/balanceCalculator';
 import { loadAISettings, AI_PROVIDERS } from './AISettings';
 
@@ -219,7 +219,7 @@ const callProviderAPI = async (provider, apiKey, model, systemPrompt, history, u
 };
 
 // ── Main FinanceAI component ───────────────────────────────────────────────────
-export const FinanceAI = ({ tripId, tripName, tripDestination, startDate, endDate, totalBudget, currencySymbol = '₹', memberName = 'Traveller', onGoToSettings, onDashboardUpdate }) => {
+export const FinanceAI = ({ tripId, tripName, tripDestination, startDate, endDate, totalBudget, currencySymbol = '₹', memberName = 'Traveller', onGoToSettings, onDashboardUpdate, onTripMetaUpdate }) => {
   const [aiSettings, setAiSettings] = useState(() => loadAISettings());
   const messagesEndRef = useRef(null);
   const CHAT_KEY = `wandr_ai_chat_${tripId}`;
@@ -326,7 +326,8 @@ Required JSON format inside the block:
   ],
   "expenses": [
     { "description": "What was spent on", "amount": 5000, "category": "Accommodation", "paid_by": "${memberName}" }
-  ]
+  ],
+  "updateBudget": null
 }
 
 Rules:
@@ -334,9 +335,11 @@ Rules:
 - expense category must be one of: Accommodation | Food & Drinks | Transport | Activities | Shopping | Miscellaneous
 - Use the trip's actual start_date (${startDate||'use trip start date'}) and end_date (${endDate||'use trip end date'}) for scheduling. Spread activities across the full trip duration.
 - For a FULL trip plan (e.g. "plan 7 days in Japan"), generate ALL days with multiple stops each day. Include hotel check-in as accommodation, dining stops as food, sightseeing as activity, flights/trains as transport.
+- ALWAYS include BOTH itinerary AND expenses arrays when planning a trip. Never split them into separate blocks.
 - If adding expenses, set paid_by to "${memberName}".
+- Budget update: if the user says "set budget to X", "change budget to X", or "my budget is now X", set "updateBudget" to the numeric value (e.g. "updateBudget": 700000). Otherwise keep it null.
 - ONLY include the <WANDR_ACTION> block when the user explicitly wants to add something to their dashboard. For general Q&A, omit it.
-- Wrap the JSON in <WANDR_ACTION> and </WANDR_ACTION> tags exactly.
+- Wrap the JSON in <WANDR_ACTION> and </WANDR_ACTION> tags exactly. Output ONLY ONE <WANDR_ACTION> block per response.
 
 RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specific actionable advice. Always be positive.`;
   };
@@ -366,6 +369,18 @@ RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specif
           const jsonStr = actionMatch[1].trim();
           const actions = JSON.parse(jsonStr);
           let addedItems = 0, addedExpenses = 0, failedItems = 0;
+          const parts = [];
+
+          // ── Budget update ───────────────────────────────────────────────
+          if (actions.updateBudget != null && !isNaN(Number(actions.updateBudget))) {
+            const newBudget = Number(actions.updateBudget);
+            const { error: budgetErr } = await updateTripBudget(tripId, newBudget);
+            if (!budgetErr) {
+              parts.push(`**budget updated to ${currencySymbol}${newBudget.toLocaleString()}**`);
+              onTripMetaUpdate?.({ total_budget: newBudget });
+              onDashboardUpdate?.();
+            }
+          }
 
           if (Array.isArray(actions.itinerary)) {
             for (const item of actions.itinerary) {
@@ -394,7 +409,6 @@ RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specif
             }
           }
 
-          const parts = [];
           if (addedItems > 0) parts.push(`**${addedItems} itinerary ${addedItems === 1 ? 'activity' : 'activities'}**`);
           if (addedExpenses > 0) parts.push(`**${addedExpenses} ${addedExpenses === 1 ? 'expense' : 'expenses'}**`);
           if (parts.length > 0) {

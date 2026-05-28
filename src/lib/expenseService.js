@@ -5,6 +5,7 @@ import {
   mockFetchTripMembers,
   mockAddExpense,
   mockSettleBalances,
+  mockUpdateTripBudget,
 } from './mockDatabase';
 
 /** Fetch the last 10 expenses for a trip. */
@@ -98,12 +99,12 @@ export const fetchTripMembers = async (tripId) => {
 
 /** Add a new expense and auto-split it evenly across all trip members. */
 export const addExpense = async (tripId, expense) => {
-  // expense.paid_by is the UUID (or the name in mock mode)
+  // In mock mode paid_by is already a display name; in Supabase mode resolve to UUID
   const payerId = expense.paid_by;
 
   if (isMockMode) {
     const { data: tripMembers } = await mockFetchTripMembers(tripId);
-    const activeMembers = tripMembers?.length ? tripMembers : ['Sarah', 'Mike', 'Chloe'];
+    const activeMembers = tripMembers?.length ? tripMembers : [payerId || 'Traveller'];
     const splitAmount   = Number((expense.amount / activeMembers.length).toFixed(2));
     const splits = activeMembers.map(name => ({
       user_id:     name,
@@ -113,6 +114,11 @@ export const addExpense = async (tripId, expense) => {
     return mockAddExpense(tripId, { ...expense, paid_by: payerId }, splits);
   }
 
+  // Supabase mode: resolve paid_by name → UUID from localStorage user
+  const userStr = localStorage.getItem('wandr_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const resolvedPayerId = user?.id || payerId;
+
   const { data: newExpense, error: expErr } = await supabase
     .from('expenses')
     .insert([{
@@ -120,7 +126,7 @@ export const addExpense = async (tripId, expense) => {
       description: expense.description,
       amount:      Number(expense.amount),
       category:    expense.category,
-      paid_by:     payerId,
+      paid_by:     resolvedPayerId,
     }])
     .select()
     .single();
@@ -157,6 +163,24 @@ export const addExpense = async (tripId, expense) => {
   }
 
   return { data: newExpense, error: null };
+};
+
+/** Update the total budget for a trip. */
+export const updateTripBudget = async (tripId, newBudget) => {
+  if (isMockMode) return mockUpdateTripBudget(tripId, newBudget);
+
+  const { data, error } = await supabase
+    .from('trips')
+    .update({ total_budget: Number(newBudget) })
+    .eq('id', tripId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[updateTripBudget]', error.message);
+    return { data: null, error };
+  }
+  return { data, error: null };
 };
 
 /** Mark all unsettled balances for a trip as settled. */
