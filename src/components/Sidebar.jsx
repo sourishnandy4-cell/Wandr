@@ -19,97 +19,194 @@ export const Sidebar = ({ activeTab = 'dashboard', onTabChange, user, onLogout, 
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
           onClick={onClose}
         />
       )}
       
       {/* Sidebar */}
       <aside className={`
-        fixed left-0 top-0 h-screen w-64 bg-primary text-white z-50
+        wandr-sidebar fixed left-0 top-0 h-screen w-64 z-50
         transform transition-transform duration-300 ease-in-out
         md:transform-none
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         flex flex-col
       `}>
         {/* Logo + Close Button */}
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Plane className="w-8 h-8" />
-            <span className="text-2xl font-bold">Wandr</span>
+        <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              className="logo-icon"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.3rem',
+                color: '#fff',
+                background: `linear-gradient(135deg, var(--accent), var(--accent-teal))`,
+                boxShadow: `0 4px 15px var(--accent-glow)`,
+              }}
+            >
+              ✈️
+            </div>
+            <span style={{
+              fontSize: '1.5rem',
+              fontWeight: 800,
+              letterSpacing: '-0.5px',
+              color: 'var(--text-on-sidebar)',
+            }}>
+              Wandr
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+            className="md:hidden"
+            style={{
+              padding: '8px',
+              borderRadius: '8px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-on-sidebar-muted)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                onTabChange?.(item.id);
-                onClose?.(); // Close mobile menu after selection
-              }}
-              className={`
-                w-full flex items-center gap-3 px-4 py-3 rounded-xl
-                transition-all duration-200
-                ${isActive 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }
-              `}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+        {/* Navigation */}
+        <nav style={{ flex: 1, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onTabChange?.(item.id);
+                  onClose?.();
+                }}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  width: '100%',
+                  textAlign: 'left',
+                  fontFamily: 'inherit',
+                  animationDelay: `${index * 0.03}s`,
+                }}
+                id={`nav-${item.id}`}
+              >
+                <Icon className="w-5 h-5" style={{ flexShrink: 0 }} />
+                <span style={{ fontFamily: 'inherit' }}>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-      {/* User Section */}
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div 
-            onClick={onProfileClick}
-            className="flex items-center gap-3 flex-1 min-w-0 hover:bg-white/5 p-1.5 rounded-xl cursor-pointer transition-all duration-200"
-            title="Customize Profile"
-          >
-            {user?.avatar ? (
-              <img 
-                src={user.avatar} 
-                alt={user.name} 
-                className="w-10 h-10 rounded-full object-cover shadow-sm flex-shrink-0"
-              />
-            ) : (
-              <div className={`w-10 h-10 rounded-full ${user?.avatarColorClass || 'bg-accent'} flex items-center justify-center font-bold text-white text-sm shadow-sm flex-shrink-0`}>
-                {user?.initials || 'SJ'}
+        {/* User Section */}
+        <div style={{
+          padding: '12px 16px',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div 
+              onClick={onProfileClick}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flex: 1,
+                minWidth: 0,
+                padding: '8px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              className="hover:bg-white/5"
+              title="Customize Profile"
+            >
+              {user?.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name} 
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    flexShrink: 0,
+                    boxShadow: `0 0 10px var(--accent-glow)`,
+                    border: '2px solid rgba(255,255,255,0.15)',
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, var(--accent), var(--accent-teal))`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  color: '#fff',
+                  fontSize: '0.8rem',
+                  flexShrink: 0,
+                  boxShadow: `0 0 10px var(--accent-glow)`,
+                }}>
+                  {user?.initials || 'W'}
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: 'var(--text-on-sidebar)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {user?.name || 'Traveler'}
+                </div>
+                <div style={{
+                  fontSize: '0.65rem',
+                  color: 'var(--text-on-sidebar-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {user?.role || 'Trip Member'}
+                </div>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm truncate">{user?.name || 'Sarah J.'}</div>
-              <div className="text-[10px] text-white/60 truncate">{user?.role || 'Trip Organizer'}</div>
             </div>
+            <button 
+              onClick={onLogout}
+              style={{
+                padding: '8px',
+                borderRadius: '8px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-on-sidebar-muted)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                flexShrink: 0,
+              }}
+              className="hover:bg-white/10"
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <button 
-            onClick={onLogout}
-            className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 text-white/80 hover:text-white flex-shrink-0"
-            title="Log Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 };

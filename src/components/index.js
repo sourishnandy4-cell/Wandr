@@ -15,3 +15,5 @@ export { TripMembers } from './TripMembers';
 export { ThemeToggle } from './ThemeToggle';
 export { MapView } from './MapView';
 export { WeatherView } from './WeatherView';
+export { LoadingScreen } from './LoadingScreen';
+export { CursorPlane } from './CursorPlane';

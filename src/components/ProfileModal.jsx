@@ -78,19 +78,29 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
       return;
     }
 
+    const trimmedName = name.trim();
+    const splitNames = trimmedName.split(' ').filter(Boolean);
+    const initials = splitNames.map(n => n[0]).join('').toUpperCase().substring(0, 3);
+    const hasAvatar = avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim();
+
     const updatedUser = {
       ...user,
-      name: name.trim(),
-      initials: name.trim().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3),
-      avatar: avatarUrl.trim() || null,
-      avatarColorClass: avatarUrl.trim() ? null : avatarColor,
+      name: trimmedName,
+      initials: initials || '?',
+      avatar: hasAvatar ? avatarUrl.trim() : null,
+      avatarColorClass: hasAvatar ? null : avatarColor,
     };
 
     onSave(updatedUser);
   };
 
+  const hasAvatar = avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim();
+
   return (
-    <div className="fixed inset-0 bg-primary/45 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn font-sans">
+    <div 
+      className="fixed inset-0 bg-primary/45 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn font-sans"
+      style={{ zIndex: 10000 }}
+    >
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100/50 p-6 md:p-8 space-y-6 relative overflow-hidden transform hover:scale-[1.01] transition-transform duration-300">
         
         {/* Header decoration */}
@@ -117,7 +127,7 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
           {/* Live Preview Section */}
           <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-dashed border-gray-150 rounded-2xl space-y-3.5 shadow-inner">
             <div className="relative">
-              {avatarUrl.trim() ? (
+              {hasAvatar ? (
                 <img
                   src={avatarUrl.trim()}
                   alt="Profile Preview"
@@ -127,7 +137,7 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
                 />
               ) : (
                 <div className={`w-20 h-20 rounded-full ${avatarColor} flex items-center justify-center text-white text-3xl font-extrabold shadow-md border-2 border-white ring-4 ring-accent/20`}>
-                  {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3) : '?'}
+                  {name ? name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().substring(0, 3) : '?'}
                 </div>
               )}
             </div>
@@ -139,7 +149,7 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-red-600 text-xs text-center">
+            <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-red-650 text-xs text-center font-semibold">
               {error}
             </div>
           )}
@@ -183,7 +193,7 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
                   <Image className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="url"
-                    value={avatarUrl.startsWith('data:') ? '' : avatarUrl}
+                    value={(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('data:')) ? '' : (avatarUrl || '')}
                     onChange={e => {
                       setAvatarUrl(e.target.value);
                       setError(null);
@@ -195,14 +205,14 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
               </div>
               
               <p className="text-[10px] text-gray-400">
-                {avatarUrl.startsWith('data:') 
+                {(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('data:')) 
                   ? '✓ Uploaded image active. Leave URL blank to clear or upload another image.' 
                   : 'Upload an image from your device (PC/Mac/Mobile) or paste a web URL.'}
               </p>
             </div>
 
             {/* Gradient Selector (Only if no custom URL or base64 photo is present) */}
-            {!avatarUrl.trim() && (
+            {!hasAvatar && (
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Initial Backdrop Gradient</label>
                 <div className="grid grid-cols-6 gap-2.5">

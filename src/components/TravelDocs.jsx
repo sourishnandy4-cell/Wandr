@@ -3,7 +3,7 @@ import {
   FileText, CheckSquare, Plus, Trash2, ClipboardList, Briefcase,
   Ticket, Hotel, Sparkles, FilePlus, Check, Upload, Eye,
   Download, FileImage, X, AlertTriangle, FolderOpen, Phone,
-  ShieldAlert, Ambulance, Flame,
+  ShieldAlert, Flame,
 } from 'lucide-react';
 
 // ── Emergency contacts per country ───────────────────────────────────────────

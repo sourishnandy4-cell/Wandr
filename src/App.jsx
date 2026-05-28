@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, FinanceAI, TripMembers, MapView, WeatherView } from './components';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, FinanceAI, TripMembers, MapView, WeatherView, LoadingScreen, CursorPlane } from './components';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { supabase, isMockMode } from './lib/supabaseClient';
 import {
   MOCK_TRIPS,
@@ -11,13 +11,15 @@ import {
   mockDeleteTrip,
   saveMockData,
 } from './lib/mockDatabase';
-import { Loader2, Sparkles, MapPin, Calendar, DollarSign, Compass, ArrowRight, BookOpen, Trash2, Settings, Info } from 'lucide-react';
+import { Loader2, Sparkles, MapPin, Calendar, DollarSign, Compass, ArrowRight, BookOpen, Trash2, Settings, Info, Palette, Globe, Sliders, Bell, Check, ChevronDown } from 'lucide-react';
 import { AISettingsPanel } from './components/AISettings';
 
 function App() {
+  const { activeTheme, setTheme, THEME_LIST } = useTheme();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tripMeta, setTripMeta] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [error, setError] = useState(null);
   const [destBgUrl, setDestBgUrl] = useState(null);
   const [currentUser, setCurrentUser] = useState(() => {
@@ -511,13 +513,19 @@ function App() {
   };
 
   if (!currentUser) {
-    return <Login onLoginSuccess={setCurrentUser} />;
+    return (
+      <>
+        {showLoadingScreen && <LoadingScreen onFinished={() => setShowLoadingScreen(false)} />}
+        <CursorPlane />
+        <Login onLoginSuccess={setCurrentUser} />
+      </>
+    );
   }
 
   // Render onboarding wizard if logged in but no active trip selected
   if (!activeTripId) {
     return (
-      <div className="min-h-screen bg-[#F9F8F4] flex flex-col items-center justify-center p-4 md:p-6 font-sans">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 font-sans" style={{ background: 'var(--bg-gradient)' }}>
 
         {/* Demo Mode Banner */}
         {isMockMode && (
@@ -527,7 +535,7 @@ function App() {
           </div>
         )}
 
-        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-5 gap-6 bg-white rounded-3xl shadow-xl border border-gray-100/50 p-6 md:p-8 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-5 gap-6 rounded-3xl shadow-xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300 relative overflow-hidden glass-card" style={{ borderRadius: 'var(--radius-lg)' }}>
           
           {/* Main Greeting (Header spans full width) */}
           <div className="md:col-span-5 text-center space-y-2 mb-2">
@@ -729,33 +737,35 @@ function App() {
 
   if (loading && !tripMeta) {
     return (
-      <div className="min-h-screen bg-warm-bg flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-10 h-10 text-accent animate-spin" />
-        <span className="text-sm text-gray-500 font-medium">Loading Wandr Dashboard...</span>
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-4" style={{ background: 'var(--bg-gradient)' }}>
+        <Loader2 className="w-10 h-10 animate-spin" style={{ color: 'var(--accent)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Loading Wandr Dashboard...</span>
       </div>
     );
   }
 
   if (error || !tripMeta) {
     return (
-      <div className="min-h-screen bg-warm-bg flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div className="inline-flex items-center justify-center p-4 bg-red-50 rounded-full text-red-500 mb-2">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4" style={{ background: 'var(--bg-gradient)' }}>
+        <div className="inline-flex items-center justify-center p-4 rounded-full mb-2" style={{ background: 'rgba(255,107,107,0.15)', color: 'var(--accent-coral)' }}>
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-gray-900">Dashboard Failed to Load</h2>
-        <p className="text-sm text-gray-500 max-w-sm">{error || 'Failed to retrieve connection meta.'}</p>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Dashboard Failed to Load</h2>
+        <p className="text-sm max-w-sm" style={{ color: 'var(--text-muted)' }}>{error || 'Failed to retrieve connection meta.'}</p>
         <div className="flex gap-3">
           <button 
             onClick={fetchTripMeta}
-            className="bg-accent text-white font-bold rounded-xl px-5 py-2.5 text-sm hover:bg-accent/90 transition-all duration-200"
+            className="font-bold rounded-xl px-5 py-2.5 text-sm transition-all duration-200 btn-animated"
+            style={{ background: 'var(--accent)', color: '#fff' }}
           >
             Try Again
           </button>
           <button 
             onClick={handleSwitchTrip}
-            className="bg-slate-100 text-gray-600 font-bold rounded-xl px-5 py-2.5 text-sm hover:bg-slate-200 transition-all duration-200"
+            className="font-bold rounded-xl px-5 py-2.5 text-sm transition-all duration-200 btn-animated"
+            style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)', border: '1px solid var(--glass-border)' }}
           >
             Switch Trip
           </button>
@@ -776,12 +786,18 @@ function App() {
   })}`;
 
   return (
-    <div className="min-h-screen bg-warm-bg dark:bg-dark-bg transition-colors duration-200">
+    <div className="min-h-screen transition-colors duration-200" style={{ background: 'var(--bg-gradient)' }}>
+
+      {/* Loading Screen (only on first render) */}
+      {showLoadingScreen && <LoadingScreen onFinished={() => setShowLoadingScreen(false)} />}
+
+      {/* Cursor Plane Follower */}
+      <CursorPlane />
 
       {/* ── Demo Mode Banner (sticky, always visible in mock mode) ── */}
       {isMockMode && (
-        <div className="w-full flex items-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-amber-800 text-xs">
-          <Info className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+        <div className="w-full flex items-center gap-2 border-b px-4 py-2 text-xs" style={{ background: 'var(--accent-glow)', borderColor: 'var(--accent-warm)', color: 'var(--text-secondary)' }}>
+          <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-warm)' }} />
           <span>
             <strong>Demo Mode</strong> — data is saved locally on this device only. No cloud backup. Connect Supabase to go live.
           </span>
@@ -810,8 +826,9 @@ function App() {
               backgroundImage: `url(${destBgUrl})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center top',
-              opacity: 0.13,
+              opacity: 0.1,
               filter: 'saturate(1.3) blur(0px)',
+              mixBlendMode: 'luminosity',
             }}
           />
         )}
@@ -832,7 +849,7 @@ function App() {
 
           {/* Dynamic Tab Views */}
           {activeTab === 'dashboard' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn view-transition-enter">
               {/* Left Column - Itinerary */}
               <div className="lg:col-span-2">
                 <ItineraryTimeline 
@@ -953,18 +970,218 @@ function App() {
           )}
 
           {activeTab === 'settings' && (
-            <div className="animate-fadeIn max-w-lg mx-auto">
-              <div className="bg-white rounded-3xl shadow-md border border-gray-100/50 p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                  <div className="p-2.5 bg-primary/10 rounded-2xl">
-                    <Settings className="w-5 h-5 text-primary" />
+            <div className="animate-fadeIn max-w-5xl mx-auto space-y-6 font-sans">
+              {/* Settings Header */}
+              <div className="flex items-center gap-3.5 pb-4 border-b border-gray-100 max-w-2xl mx-auto">
+                <div className="p-3 bg-primary/10 rounded-2xl">
+                  <Settings className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="font-extrabold text-xl text-primary tracking-tight">App Settings</h1>
+                  <p className="text-xs text-gray-400">Customise your traveler profile, app appearance, preferences, and AI integrations.</p>
+                </div>
+              </div>
+
+              {/* Stacked single-column settings sections (one below the other) */}
+              <div className="max-w-2xl mx-auto space-y-6">
+                
+                {/* Appearance card */}
+                <div className="glass-card" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
+                  <div className="flex items-center gap-2.5 mb-5 pb-3.5 border-b border-gray-100">
+                    <div className="p-2 bg-accent/10 rounded-xl text-accent">
+                      <Palette className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-primary">Appearance</h3>
+                      <p className="text-[11px] text-gray-400">Choose a gorgeous theme for your travel dashboard.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-extrabold text-lg text-primary tracking-tight">AI Settings</h2>
-                    <p className="text-xs text-gray-400">Choose your AI provider and configure your API key.</p>
+
+                  {/* Theme visual selector grid */}
+                  <div className="grid grid-cols-2 gap-3.5">
+                    {THEME_LIST.map((theme) => {
+                      const isActive = activeTheme === theme.id;
+                      return (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          onClick={() => setTheme(theme.id)}
+                          className={`flex flex-col text-left p-3.5 rounded-2xl border transition-all duration-300 relative group cursor-pointer ${
+                            isActive 
+                              ? 'border-primary bg-primary/5 ring-2 ring-primary/20 scale-[1.01] shadow-sm' 
+                              : 'border-gray-150 bg-slate-50 hover:border-gray-250 hover:bg-slate-100/50 hover:scale-[1.005]'
+                          }`}
+                        >
+                          {/* Visual Highlight indicator */}
+                          {isActive && (
+                            <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white">
+                              <Check className="w-2.5 h-2.5" />
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <span style={{ fontSize: '1.25rem' }} className="group-hover:animate-bounce">{theme.icon}</span>
+                            <span className="font-extrabold text-xs text-primary">{theme.name}</span>
+                          </div>
+                          
+                          <p className="text-[10px] text-gray-400 leading-normal flex-1">{theme.description}</p>
+                          
+                          {/* Color swatches */}
+                          <div className="flex gap-1 mt-3">
+                            {theme.preview.slice(1).map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-3.5 h-3.5 rounded-full border border-white shadow-sm"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <AISettingsPanel onSaved={() => {}} />
+
+                {/* Preferences Card */}
+                <div className="glass-card" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
+                  <div className="flex items-center gap-2.5 mb-5 pb-3.5 border-b border-gray-100">
+                    <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-primary">Preferences & Localisation</h3>
+                      <p className="text-[11px] text-gray-400">Configure currency and custom traveler style tags.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Currency Selector (updates app-wide!) */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Default Currency</label>
+                      <div className="relative max-w-xs">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                          {currentUser.currencySymbol || '₹'}
+                        </span>
+                        <select
+                          value={currentUser.currencySymbol || '₹'}
+                          onChange={(e) => {
+                            const newSymbol = e.target.value;
+                            handleUpdateUser({
+                              ...currentUser,
+                              currencySymbol: newSymbol,
+                            });
+                          }}
+                          className="w-full text-xs rounded-xl border border-gray-250/70 pl-8 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white appearance-none font-bold"
+                        >
+                          <option value="₹">₹ Indian Rupee (INR)</option>
+                          <option value="$">$ US Dollar (USD)</option>
+                          <option value="€">€ Euro (EUR)</option>
+                          <option value="£">£ British Pound (GBP)</option>
+                          <option value="¥">¥ Japanese Yen (JPY)</option>
+                          <option value="₩">₩ Korean Won (KRW)</option>
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      </div>
+                      <p className="text-[9.5px] text-gray-400">This instantly converts the currency symbols across budget charts, expense logs, balance logs, and AI insights.</p>
+                    </div>
+
+                    {/* Travel Style Selector (custom preference) */}
+                    <div className="space-y-1.5 pt-1">
+                      <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Travel Style Tag</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Backpacker', 'Balanced Explorer', 'Luxury Traveler', 'Adventure Seeker'].map((style) => {
+                          const isSelected = currentUser.travelStyle === style || (!currentUser.travelStyle && style === 'Balanced Explorer');
+                          return (
+                            <button
+                              key={style}
+                              type="button"
+                              onClick={() => {
+                                  handleUpdateUser({
+                                    ...currentUser,
+                                    travelStyle: style,
+                                  });
+                                }}
+                              className={`text-[10.5px] font-extrabold px-3 py-1.5 rounded-full transition-all duration-200 border cursor-pointer select-none ${
+                                isSelected
+                                  ? 'bg-accent/15 text-accent border-accent/20 font-extrabold shadow-sm'
+                                  : 'bg-slate-50 text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
+                              }`}
+                            >
+                              {style}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[9.5px] text-gray-400">Helps Wandr Finance AI tailor budget allocations and travel cost advice to your personal travel style.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Settings card (Minimalistic) */}
+                <div className="glass-card" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
+                  <div className="flex items-center gap-2.5 mb-5 pb-3.5 border-b border-gray-100">
+                    <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                      <Settings className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-primary">AI Integration</h3>
+                      <p className="text-[11px] text-gray-400">Configure AI provider keys and model preferences.</p>
+                    </div>
+                  </div>
+
+                  {/* Compact minimalistic AI settings panel */}
+                  <AISettingsPanel onSaved={() => {}} />
+                </div>
+
+                {/* App Notifications & Privacy Settings Card */}
+                <div className="glass-card" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
+                  <div className="flex items-center gap-2.5 mb-5 pb-3.5 border-b border-gray-100">
+                    <div className="p-2 bg-emerald-50 text-emerald-500 rounded-xl">
+                      <Sliders className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-primary">Notifications & Privacy</h3>
+                      <p className="text-[11px] text-gray-400">Toggle push alerts and weekly summaries.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3.5">
+                    {[
+                      { id: 'notifyAlerts', label: 'Push Travel Alerts', desc: 'Receive instant alerts for budget overruns.' },
+                      { id: 'notifyWeekly', label: 'Weekly Summary Emails', desc: 'Get cost breakdown reports and trip statistics.' },
+                      { id: 'notifyTips', label: 'AI Smart Advice', desc: 'Receive interactive notifications with tips from AI.' },
+                    ].map((item) => {
+                      const isChecked = currentUser[item.id] !== false; // default true
+                      return (
+                        <div key={item.id} className="flex items-start justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <span className="text-[11.5px] font-extrabold text-primary">{item.label}</span>
+                            <p className="text-[9.5px] text-gray-400 leading-normal">{item.desc}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleUpdateUser({
+                                ...currentUser,
+                                [item.id]: !isChecked,
+                              });
+                            }}
+                            className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 cursor-pointer ${
+                              isChecked ? 'bg-primary' : 'bg-gray-200'
+                            } flex items-center`}
+                          >
+                            <div
+                              className={`w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                                isChecked ? 'translate-x-4' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
             </div>
           )}

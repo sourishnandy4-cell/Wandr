@@ -199,119 +199,127 @@ export const AISettingsPanel = ({ onSaved }) => {
   const activeKey = localStorage.getItem(LS_KEY(localStorage.getItem(LS_PROVIDER) || 'gemini'));
 
   return (
-    <div className="space-y-5">
-      {/* Active provider badge */}
-      {activeKey && (
-        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3">
-          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <p className="text-xs font-bold text-emerald-700">
-            AI Active · Using <span className="font-extrabold">{AI_PROVIDERS[localStorage.getItem(LS_PROVIDER)]?.name || 'Gemini'}</span>
-            {' '}· {AI_PROVIDERS[localStorage.getItem(LS_PROVIDER)]?.models.find(m => m.id === (localStorage.getItem(LS_MODEL(localStorage.getItem(LS_PROVIDER))) || ''))?.name || ''}
-          </p>
+    <div className="space-y-4">
+      {/* Provider Selector - Horizontal & Sleek */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">AI Provider</label>
+          {activeKey && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Active: {AI_PROVIDERS[localStorage.getItem(LS_PROVIDER)]?.name || 'Gemini'}
+            </span>
+          )}
         </div>
-      )}
-
-      {/* Provider selector tabs */}
-      <div>
-        <p className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-2">Choose AI Provider</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-1.5 p-1 bg-slate-100/85 rounded-xl border border-slate-200/50">
           {Object.values(AI_PROVIDERS).map(p => {
+            const isSelected = selectedId === p.id;
             const hasKey = !!keyInputs[p.id]?.trim() || !!localStorage.getItem(LS_KEY(p.id));
             return (
-              <button key={p.id} onClick={() => { setSelectedId(p.id); setTestResult(null); setSaved2(false); }}
-                className={`relative flex items-center gap-3 px-3 py-3 rounded-2xl border text-left transition-all ${
-                  selectedId === p.id
-                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                    : 'border-gray-100 bg-slate-50 hover:border-gray-200'
-                }`}>
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center text-white text-lg flex-shrink-0`}>{p.logo}</div>
-                <div className="min-w-0">
-                  <p className="text-xs font-extrabold text-primary truncate">{p.name}</p>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${p.badgeColor}`}>{p.badge}</span>
-                </div>
-                {hasKey && <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full" title="Key saved" />}
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { setSelectedId(p.id); setTestResult(null); setSaved2(false); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-1.5 rounded-lg text-[11px] font-extrabold transition-all relative ${
+                  isSelected 
+                    ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' 
+                    : 'text-gray-400 hover:bg-white/40 hover:text-gray-700'
+                }`}
+              >
+                <span className={`text-xs ${isSelected ? 'scale-110' : ''}`}>{p.logo}</span>
+                <span className="hidden sm:inline">{p.name.replace(' Google', '').replace(' AI', '')}</span>
+                {hasKey && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" title="Key saved" style={{ animationDuration: '3s' }} />
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Selected provider config */}
-      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${provider.color} flex items-center justify-center text-white text-sm`}>{provider.logo}</div>
-          <div>
-            <p className="text-sm font-extrabold text-primary">{provider.name}</p>
-            <a href={provider.getKeyUrl} target="_blank" rel="noopener noreferrer"
-              className="text-[11px] text-accent hover:underline flex items-center gap-0.5">
-              Get free key at {provider.getKeyLabel} <ExternalLink className="w-2.5 h-2.5" />
-            </a>
-          </div>
+      {/* Selected Provider Config - Elegant & Tight */}
+      <div className="space-y-3.5 pt-0.5">
+        {/* Link to get key - Compact */}
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-gray-450 font-medium">Configure credentials:</span>
+          <a href={provider.getKeyUrl} target="_blank" rel="noopener noreferrer"
+            className="text-accent hover:underline flex items-center gap-0.5 font-bold transition-all">
+            Get {provider.name} key <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
 
-        {/* API Key input */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">API Key</label>
-          <div className="relative">
-            <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              type={showKeys[selectedId] ? 'text' : 'password'}
-              value={keyInputs[selectedId] || ''}
-              onChange={e => { setKeyInputs(prev => ({ ...prev, [selectedId]: e.target.value })); setTestResult(null); setSaved2(false); }}
-              placeholder={provider.keyPlaceholder}
-              className="w-full text-sm rounded-xl border border-gray-200 pl-9 pr-20 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/20 font-mono bg-white"
-            />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-              <button type="button" onClick={() => setShowKeys(s => ({ ...s, [selectedId]: !s[selectedId] }))}
-                className="p-1 text-gray-400 hover:text-gray-600">
-                {showKeys[selectedId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-              {(keyInputs[selectedId] || localStorage.getItem(LS_KEY(selectedId))) && (
-                <button type="button" onClick={() => handleRemove(selectedId)} className="p-1 text-red-400 hover:text-red-600" title="Remove key">
-                  <Trash2 className="w-3.5 h-3.5" />
+        {/* API Key & Model Select in a tight side-by-side grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* API Key input */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">API Key</label>
+            <div className="relative">
+              <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type={showKeys[selectedId] ? 'text' : 'password'}
+                value={keyInputs[selectedId] || ''}
+                onChange={e => { setKeyInputs(prev => ({ ...prev, [selectedId]: e.target.value })); setTestResult(null); setSaved2(false); }}
+                placeholder={provider.keyPlaceholder}
+                className="w-full text-xs rounded-xl border border-gray-250/70 pl-9 pr-16 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/20 font-mono bg-white"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-0.5">
+                <button type="button" onClick={() => setShowKeys(s => ({ ...s, [selectedId]: !s[selectedId] }))}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+                  {showKeys[selectedId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
-              )}
+                {(keyInputs[selectedId] || localStorage.getItem(LS_KEY(selectedId))) && (
+                  <button type="button" onClick={() => handleRemove(selectedId)} className="p-1 text-red-400 hover:text-red-650 transition-colors" title="Remove key">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-          <p className="text-[10px] text-gray-400">{provider.keyHint}</p>
-        </div>
 
-        {/* Model selector */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Model</label>
-          <div className="relative">
-            <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <select
-              value={modelSelects[selectedId]}
-              onChange={e => setModelSelects(prev => ({ ...prev, [selectedId]: e.target.value }))}
-              className="w-full text-sm rounded-xl border border-gray-200 pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white appearance-none">
-              {provider.models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
+          {/* Model selector */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Model</label>
+            <div className="relative font-sans">
+              <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <select
+                value={modelSelects[selectedId]}
+                onChange={e => setModelSelects(prev => ({ ...prev, [selectedId]: e.target.value }))}
+                className="w-full text-xs rounded-xl border border-gray-250/70 pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white appearance-none transition-colors font-sans">
+                {provider.models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Test result */}
+        {/* Small key prefix / hint message */}
+        <p className="text-[9.5px] text-gray-400 mt-[-4px] italic">{provider.keyHint}</p>
+
+        {/* Test Result Indicator */}
         {testResult && (
-          <div className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs ${testResult.ok ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-            {testResult.ok ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> : <span className="flex-shrink-0 mt-0.5">⚠️</span>}
-            <p className="font-medium leading-relaxed">{testResult.msg}</p>
+          <div className={`flex items-start gap-1.5 rounded-xl px-3 py-2 text-[11px] ${
+            testResult.ok 
+              ? 'bg-emerald-50/70 text-emerald-700 border border-emerald-100/50' 
+              : 'bg-red-50/70 text-red-600 border border-red-100/50'
+          }`}>
+            {testResult.ok ? <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> : <span className="flex-shrink-0 mt-0.5">⚠️</span>}
+            <p className="font-semibold leading-normal">{testResult.msg}</p>
           </div>
         )}
 
-        {/* Save button */}
+        {/* Save button - Sleek & compact */}
         <button onClick={handleSave} disabled={testing || !keyInputs[selectedId]?.trim()}
-          className="w-full bg-primary hover:bg-primary/90 text-white font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50">
+          className="w-full bg-primary hover:bg-primary/95 text-white font-bold rounded-xl py-2.5 text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 shadow-sm hover:shadow active:scale-[0.99] font-sans">
           {testing
-            ? <><Bot className="w-4 h-4 animate-pulse" /> Verifying key…</>
+            ? <><Bot className="w-3.5 h-3.5 animate-pulse" /> Verifying...</>
             : saved2
-            ? <><CheckCircle className="w-4 h-4" /> Saved! AI is ready</>
-            : <><CheckCircle className="w-4 h-4" /> Save & Activate</>}
+            ? <><CheckCircle className="w-3.5 h-3.5" /> Key Verified & Saved</>
+            : <><CheckCircle className="w-3.5 h-3.5" /> Verify & Save Connection</>}
         </button>
-      </div>
 
-      <p className="text-[10px] text-gray-400 text-center">
-        🔒 Keys are stored only in <strong>your browser</strong>. Never uploaded to any server.
-      </p>
+        <div className="flex items-center justify-center gap-1 text-[9.5px] text-gray-400 font-sans">
+          <span>🔒 Credentials are encrypted and stored only in your local browser context.</span>
+        </div>
+      </div>
     </div>
   );
 };

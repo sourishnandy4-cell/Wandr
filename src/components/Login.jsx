@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Lock, User, ArrowRight, AlertCircle, Globe, UserCheck, Info, Eye, EyeOff } from 'lucide-react';
 import { supabase, isMockMode } from '../lib/supabaseClient';
 import { login, signUp } from '../lib/authService';
@@ -132,8 +132,37 @@ export const Login = ({ onLoginSuccess }) => {
     backdropFilter: 'blur(8px)',
   };
 
+  // Generate animated stars
+  const starsContainerRef = useRef(null);
+  useEffect(() => {
+    const container = starsContainerRef.current;
+    if (!container) return;
+    const count = 60;
+    for (let i = 0; i < count; i++) {
+      const star = document.createElement('div');
+      const size = Math.random() * 2.5 + 1;
+      Object.assign(star.style, {
+        position: 'absolute',
+        width: size + 'px',
+        height: size + 'px',
+        left: Math.random() * 100 + '%',
+        top: Math.random() * 100 + '%',
+        background: '#fff',
+        borderRadius: '50%',
+        opacity: '0',
+        animation: `twinkle ${(Math.random() * 3 + 2)}s ease-in-out infinite`,
+        animationDelay: `${(Math.random() * 4)}s`,
+      });
+      container.appendChild(star);
+    }
+    return () => { container.innerHTML = ''; };
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={bgStyle}>
+
+      {/* Animated starfield */}
+      <div ref={starsContainerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
 
       {/* Dark overlay for readability */}
       {/* ── SVG Scenery (pure CSS, no external images) ── */}
