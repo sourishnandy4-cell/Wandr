@@ -779,8 +779,27 @@ function App() {
       />
 
       {/* Main Content Area */}
-      <div className="md:ml-64 min-h-screen">
-        <div className="max-w-7xl mx-auto p-6">
+      <div className="md:ml-64 min-h-screen relative">
+
+        {/* ── Destination background image (faded, non-intrusive) ── */}
+        {tripMeta?.destination && (() => {
+          const keyword = encodeURIComponent(tripMeta.destination.split(',')[0].trim());
+          return (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url(https://source.unsplash.com/1600x900/?${keyword},travel,landscape)`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center top',
+                backgroundAttachment: 'local',
+                opacity: 0.07,
+                filter: 'saturate(1.2)',
+              }}
+            />
+          );
+        })()}
+
+        <div className="relative max-w-7xl mx-auto p-6">
           {/* Header */}
           <Header 
             tripId={tripMeta.id}
