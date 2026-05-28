@@ -35,12 +35,23 @@ const geocodeLocation = async (locationStr, destination = '') => {
 const fetchNearbyPlaces = async (lat, lng, type) => {
   const tagMap = { restaurant: 'amenity=restaurant', cafe: 'amenity=cafe', attraction: 'tourism=attraction' };
   const tag = tagMap[type] || 'amenity=restaurant';
-  const query = `[out:json][timeout:12];node[${tag}](around:600,${lat},${lng});out 6;`;
+  const query = `[out:json][timeout:25];node[${tag}](around:800,${lat},${lng});out 8;`;
   try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+    if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
     const data = await res.json();
-    return (data.elements || []).slice(0, 6).map(e => ({ name: e.tags?.name || type, lat: e.lat, lng: e.lon }));
-  } catch (e) { return []; }
+    return (data.elements || [])
+      .filter(e => e.tags?.name)
+      .slice(0, 8)
+      .map(e => ({ name: e.tags.name, lat: e.lat, lng: e.lon, cuisine: e.tags.cuisine }));
+  } catch (e) {
+    console.warn('Overpass fetch failed:', e.message);
+    return [];
+  }
 };
 
 const CAT_COLORS = {
@@ -61,13 +72,14 @@ export const MapView = ({ tripId, tripDestination }) => {
   const mapInstanceRef = useRef(null);
   const nearbyLayerGroupRef = useRef(null);
   const expenseLayerGroupRef = useRef(null);
+  const destinationCenterRef = useRef(null); // fallback when no geocoded stops
   const [loading, setLoading] = useState(true);
   const [geocodingStatus, setGeocodingStatus] = useState('');
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
   const [geocodedItems, setGeocodedItems] = useState([]);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
-  const [nearbyType, setNearbyType] = useState(null);
+  const [activeNearby, setActiveNearby] = useState(null); // click-toggle state
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [showExpenses, setShowExpenses] = useState(false);
@@ -75,7 +87,6 @@ export const MapView = ({ tripId, tripDestination }) => {
   const [expensePinsLoading, setExpensePinsLoading] = useState(false);
   const markerRefs = useRef({});
   const hoverTimerRef = useRef(null);
-  const activeHoverRef = useRef(null);
 
   const buildMap = async () => {
     setLoading(true);
@@ -115,6 +126,7 @@ export const MapView = ({ tripId, tripDestination }) => {
         setGeocodingStatus('');
       }
       if (!center) center = { lat: 41.3851, lng: 2.1734 }; // Barcelona fallback
+      destinationCenterRef.current = center; // store for Discover Nearby fallback
 
       const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: true }).setView([center.lat, center.lng], 13);
       mapInstanceRef.current = map;
@@ -173,123 +185,131 @@ export const MapView = ({ tripId, tripDestination }) => {
     return () => { if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; } };
   }, [tripId]);
 
-  // ── Hover: show nearby markers, clear on mouse-out ───────────────────────
-  const handleNearbyHoverStart = (type) => {
-    clearTimeout(hoverTimerRef.current);
-    activeHoverRef.current = type;
-    // 200 ms debounce — avoids firing on quick mouse passes
-    hoverTimerRef.current = setTimeout(async () => {
-      if (activeHoverRef.current !== type) return;
+  // ── Get the best available map center (geocoded stop → map center → destination fallback) ──
+  const getMapCenter = () => {
+    if (mapInstanceRef.current) {
+      const c = mapInstanceRef.current.getCenter();
+      return { lat: c.lat, lng: c.lng };
+    }
+    if (geocodedItems.length > 0) return geocodedItems[0].coords;
+    if (destinationCenterRef.current) return destinationCenterRef.current;
+    return null;
+  };
+
+  // ── CLICK-TOGGLE: show/hide nearby markers ────────────────────────────────
+  const handleNearbyClick = async (type) => {
+    // If clicking the same type → toggle off
+    if (activeNearby === type) {
+      setActiveNearby(null);
+      setNearbyPlaces([]);
       nearbyLayerGroupRef.current?.clearLayers();
-      if (geocodedItems.length === 0) return;
+      return;
+    }
 
-      setNearbyLoading(true);
-      setNearbyType(type);
+    const center = getMapCenter();
+    if (!center) {
+      alert('Map is still loading. Please wait a moment and try again.');
+      return;
+    }
 
-      let lat, lng;
-      if (mapInstanceRef.current) {
-        const c = mapInstanceRef.current.getCenter();
-        lat = c.lat; lng = c.lng;
+    nearbyLayerGroupRef.current?.clearLayers();
+    setActiveNearby(type);
+    setNearbyPlaces([]);
+    setNearbyLoading(true);
+
+    const places = await fetchNearbyPlaces(center.lat, center.lng, type);
+    setNearbyLoading(false);
+    setNearbyPlaces(places);
+
+    const L = window.L;
+    if (L && nearbyLayerGroupRef.current) {
+      const typeColors = { restaurant: '#E8A87C', cafe: '#A78BFA', attraction: '#34D399' };
+      const color = typeColors[type] || '#888';
+
+      if (places.length === 0) {
+        // Show a message marker if nothing found
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="background:#ef4444;color:white;padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)">None found nearby</div>`,
+          iconAnchor: [0, 0],
+        });
+        L.marker([center.lat, center.lng], { icon }).addTo(nearbyLayerGroupRef.current);
       } else {
-        lat = geocodedItems[0].coords.lat;
-        lng = geocodedItems[0].coords.lng;
-      }
-
-      const places = await fetchNearbyPlaces(lat, lng, type);
-      setNearbyLoading(false);
-
-      if (activeHoverRef.current !== type) {
-        nearbyLayerGroupRef.current?.clearLayers();
-        return;
-      }
-
-      setNearbyPlaces(places);
-
-      const L = window.L;
-      if (L && nearbyLayerGroupRef.current) {
-        const typeColors = { restaurant: '#E8A87C', cafe: '#A78BFA', attraction: '#34D399' };
-        const color = typeColors[type] || '#888';
         places.forEach(place => {
+          const label = place.name.length > 18 ? place.name.slice(0, 16) + '…' : place.name;
           const icon = L.divIcon({
             className: '',
-            html: `<div style="background:${color};color:white;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">${place.name.length > 16 ? place.name.slice(0,14)+'…' : place.name}</div>`,
+            html: `<div style="background:${color};color:white;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">${label}</div>`,
             iconAnchor: [0, 0],
           });
+          const popup = `<b style="font-size:12px">${place.name}</b><br>
+            <small style="color:#888;text-transform:capitalize">${type}${place.cuisine ? ' · ' + place.cuisine : ''}</small>`;
           L.marker([place.lat, place.lng], { icon })
             .addTo(nearbyLayerGroupRef.current)
-            .bindPopup(`<b style="font-size:12px">${place.name}</b><br><small style="color:#888;text-transform:capitalize">${type}</small>`);
+            .bindPopup(popup);
         });
+        // Fly map to show nearby places
+        if (places.length > 0 && mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([places[0].lat, places[0].lng], 15, { duration: 0.8 });
+        }
       }
-    }, 200);
+    }
   };
 
-  const handleNearbyHoverEnd = () => {
-    clearTimeout(hoverTimerRef.current);
-    activeHoverRef.current = null;
-    setNearbyType(null);
-    setNearbyPlaces([]);
-    setNearbyLoading(false);
-    nearbyLayerGroupRef.current?.clearLayers();
-  };
+  // ── CLICK-TOGGLE: show/hide expense pins ──────────────────────────────────
+  const handleExpenseClick = async () => {
+    if (showExpenses) {
+      setShowExpenses(false);
+      expenseLayerGroupRef.current?.clearLayers();
+      return;
+    }
 
-  // ── Hover: show expense pins, clear on mouse-out ──────────────────────────
-  const handleExpenseHoverStart = async () => {
-    clearTimeout(hoverTimerRef.current);
-    activeHoverRef.current = 'expenses';
-    hoverTimerRef.current = setTimeout(async () => {
-      if (activeHoverRef.current !== 'expenses') return;
-      if (geocodedItems.length === 0) return;
+    const center = getMapCenter();
+    if (!center) return;
 
-      setExpensePinsLoading(true);
-      try {
-        const { data } = await fetchRecentExpenses(tripId);
-        const expList = data || [];
-        if (activeHoverRef.current !== 'expenses') return;
-        setExpenses(expList);
-        setShowExpenses(true);
+    setExpensePinsLoading(true);
+    try {
+      const { data } = await fetchRecentExpenses(tripId);
+      const expList = data || [];
+      setExpenses(expList);
+      setShowExpenses(true);
 
-        const L = window.L;
-        if (L && expenseLayerGroupRef.current && mapInstanceRef.current) {
-          expenseLayerGroupRef.current.clearLayers();
-          expList.forEach((exp) => {
-            let closest = geocodedItems[0];
+      const L = window.L;
+      if (L && expenseLayerGroupRef.current && mapInstanceRef.current) {
+        expenseLayerGroupRef.current.clearLayers();
+        expList.forEach((exp) => {
+          // Anchor expense pin near closest itinerary stop, or use map center
+          let base = center;
+          if (geocodedItems.length > 0) {
             let minDist = Infinity;
             geocodedItems.forEach(g => {
-              const d = haversine(g.coords, closest.coords);
-              if (d < minDist) { minDist = d; closest = g; }
+              const d = haversine(g.coords, center);
+              if (d < minDist) { minDist = d; base = g.coords; }
             });
-            const offsetLat = closest.coords.lat + (Math.random() - 0.5) * 0.002;
-            const offsetLng = closest.coords.lng + (Math.random() - 0.5) * 0.002;
-            const icon = L.divIcon({
-              className: '',
-              html: `<div style="background:#16a34a;color:white;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2);display:flex;align-items:center;gap:3px"><span>₹</span>${exp.amount}</div>`,
-              iconAnchor: [0, 0],
-            });
-            L.marker([offsetLat, offsetLng], { icon })
-              .addTo(expenseLayerGroupRef.current)
-              .bindPopup(
-                `<div style="font-family:system-ui,sans-serif;min-width:150px">
-                  <div style="font-size:12px;font-weight:800;color:#16a34a;margin-bottom:3px">₹${exp.amount}</div>
-                  <div style="font-size:12px;font-weight:700;color:#2E3F5C">${exp.description}</div>
-                  <div style="font-size:10px;color:#888;margin-top:2px">${exp.category || 'General'} · Paid by ${exp.paid_by}</div>
-                </div>`
-              );
+          }
+          const offsetLat = base.lat + (Math.random() - 0.5) * 0.003;
+          const offsetLng = base.lng + (Math.random() - 0.5) * 0.003;
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:#16a34a;color:white;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">₹${exp.amount}</div>`,
+            iconAnchor: [0, 0],
           });
-        }
-      } catch (e) {
-        console.error('Failed to load expense pins:', e);
-      } finally {
-        setExpensePinsLoading(false);
+          L.marker([offsetLat, offsetLng], { icon })
+            .addTo(expenseLayerGroupRef.current)
+            .bindPopup(
+              `<div style="font-family:system-ui,sans-serif;min-width:150px">
+                <div style="font-size:12px;font-weight:800;color:#16a34a;margin-bottom:3px">₹${exp.amount}</div>
+                <div style="font-size:12px;font-weight:700;color:#2E3F5C">${exp.description}</div>
+                <div style="font-size:10px;color:#888;margin-top:2px">${exp.category || 'General'} · Paid by ${exp.paid_by}</div>
+              </div>`
+            );
+        });
       }
-    }, 200);
-  };
-
-  const handleExpenseHoverEnd = () => {
-    clearTimeout(hoverTimerRef.current);
-    activeHoverRef.current = null;
-    setShowExpenses(false);
-    setExpensePinsLoading(false);
-    expenseLayerGroupRef.current?.clearLayers();
+    } catch (e) {
+      console.error('Failed to load expense pins:', e);
+    } finally {
+      setExpensePinsLoading(false);
+    }
   };
 
   const handleFlyTo = (item) => {
@@ -356,6 +376,7 @@ export const MapView = ({ tripId, tripDestination }) => {
           {/* Nearby panel */}
           <div className="bg-white rounded-2xl shadow-sm p-4 space-y-2">
             <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">Discover Nearby</h3>
+            <p className="text-[10px] text-gray-400 mb-2">Click to toggle places on the map</p>
             {[
               { type: 'restaurant', label: 'Restaurants', icon: Utensils, cls: 'text-orange-500 bg-orange-50 hover:bg-orange-100 ring-orange-300' },
               { type: 'cafe', label: 'Cafés', icon: Coffee, cls: 'text-purple-500 bg-purple-50 hover:bg-purple-100 ring-purple-300' },
@@ -363,29 +384,30 @@ export const MapView = ({ tripId, tripDestination }) => {
             ].map(({ type, label, icon: Icon, cls }) => (
               <button
                 key={type}
-                onMouseEnter={() => handleNearbyHoverStart(type)}
-                onMouseLeave={handleNearbyHoverEnd}
-                disabled={nearbyLoading || geocodedItems.length === 0}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${cls} ${nearbyType === type ? 'ring-2 ring-offset-1' : ''} disabled:opacity-40`}
+                onClick={() => handleNearbyClick(type)}
+                disabled={nearbyLoading && activeNearby !== type}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${cls} ${activeNearby === type ? 'ring-2 ring-offset-1' : ''} disabled:opacity-40`}
               >
                 <Icon className="w-3.5 h-3.5" />{label}
-                {nearbyLoading && nearbyType === type && <Loader2 className="w-3 h-3 ml-auto animate-spin" />}
-                {nearbyType === type && nearbyPlaces.length > 0 && !nearbyLoading && (
-                  <span className="ml-auto">{nearbyPlaces.length} found</span>
+                {nearbyLoading && activeNearby === type && <Loader2 className="w-3 h-3 ml-auto animate-spin" />}
+                {activeNearby === type && nearbyPlaces.length > 0 && !nearbyLoading && (
+                  <span className="ml-auto">{nearbyPlaces.length} found · click to hide</span>
+                )}
+                {activeNearby === type && nearbyPlaces.length === 0 && !nearbyLoading && (
+                  <span className="ml-auto text-red-400">None found</span>
                 )}
               </button>
             ))}
 
-            {/* Expense Pins hover */}
+            {/* Expense Pins toggle */}
             <div className="pt-2 border-t border-gray-100 mt-1">
               <button
-                onMouseEnter={handleExpenseHoverStart}
-                onMouseLeave={handleExpenseHoverEnd}
-                disabled={expensePinsLoading || geocodedItems.length === 0}
+                onClick={handleExpenseClick}
+                disabled={expensePinsLoading}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-green-600 bg-green-50 hover:bg-green-100 ring-green-300 ${showExpenses ? 'ring-2 ring-offset-1' : ''} disabled:opacity-40`}
               >
                 <DollarSign className="w-3.5 h-3.5" />
-                Pin Expenses
+                {showExpenses ? 'Hide Expenses' : 'Pin Expenses'}
                 {expensePinsLoading && <Loader2 className="w-3 h-3 ml-auto animate-spin" />}
                 {showExpenses && !expensePinsLoading && (
                   <span className="ml-auto flex items-center gap-1">{expenses.length} pinned <X className="w-3 h-3" /></span>

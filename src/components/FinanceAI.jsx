@@ -4,8 +4,8 @@ import {
   Cloud, Map, DollarSign, MessageCircle, Globe,
   TrendingUp, Compass, Lightbulb, Settings,
 } from 'lucide-react';
-import { fetchItinerary } from '../lib/itineraryService';
-import { fetchRecentExpenses, fetchTripMembers } from '../lib/expenseService';
+import { fetchItinerary, addItineraryItem } from '../lib/itineraryService';
+import { fetchRecentExpenses, fetchTripMembers, addExpense } from '../lib/expenseService';
 import { calculateNetBalances } from '../lib/balanceCalculator';
 import { loadAISettings, AI_PROVIDERS } from './AISettings';
 
@@ -219,10 +219,17 @@ const callProviderAPI = async (provider, apiKey, model, systemPrompt, history, u
 };
 
 // ── Main FinanceAI component ───────────────────────────────────────────────────
-export const FinanceAI = ({ tripId, tripName, tripDestination, totalBudget, currencySymbol = '₹', onGoToSettings }) => {
+export const FinanceAI = ({ tripId, tripName, tripDestination, startDate, endDate, totalBudget, currencySymbol = '₹', memberName = 'Traveller', onGoToSettings, onDashboardUpdate }) => {
   const [aiSettings, setAiSettings] = useState(() => loadAISettings());
   const messagesEndRef = useRef(null);
-  const [messages, setMessages]     = useState([]);
+  const CHAT_KEY = `wandr_ai_chat_${tripId}`;
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`wandr_ai_chat_${tripId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [inputText, setInputText]   = useState('');
   const [loading, setLoading]       = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Thinking…');
@@ -237,13 +244,25 @@ export const FinanceAI = ({ tripId, tripName, tripDestination, totalBudget, curr
     return () => window.removeEventListener('focus', onFocus);
   }, []);
 
+  // ── Persist messages to localStorage on every change ──────────────────────
+  useEffect(() => {
+    if (messages.length === 0) return;
+    try {
+      localStorage.setItem(CHAT_KEY, JSON.stringify(messages.slice(-120)));
+    } catch {}
+  }, [messages, CHAT_KEY]);
+
+  // ── Show welcome message only if no saved history exists ──────────────────
   useEffect(() => {
     if (!apiKey) return;
-    setMessages([{
-      id: 'welcome', sender: 'ai',
-      text: `Hi! I'm your **Wandr AI Advisor** 🤖\n\nI have full access to your trip **"${tripName}"** and can answer any travel question:\n* 💰 Budget, expenses & balances\n* 🗓️ Full itinerary & locations\n* 🌤️ Live weather for ${tripDestination || 'your destination'}\n* 🗺️ Mapped stops & coordinates\n* 🌍 Visa, currency, culture, food, safety & more\n\n_Ask me anything — powered by **${provider.name}**._`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }]);
+    setMessages(prev => {
+      if (prev.length > 0) return prev; // restore saved chat — don't reset
+      return [{
+        id: 'welcome', sender: 'ai',
+        text: `Hi! I'm your **Wandr AI Advisor** 🤖\n\nI have full access to your trip **"${tripName}"** and can answer any travel question:\n* 💰 Budget, expenses & balances\n* 🗓️ Full itinerary & locations\n* 🌤️ Live weather for ${tripDestination || 'your destination'}\n* 🗺️ Mapped stops & coordinates\n* 📋 **I can also build your full itinerary and add it to the dashboard!**\n* 🌍 Visa, currency, culture, food, safety & more\n\n_Ask me anything — powered by **${provider.name}**._`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }];
+    });
     setError(null);
   }, [tripId, tripName, apiKey, provider.id]);
 
@@ -286,7 +305,7 @@ You have TWO roles:
 2. GENERAL TRAVEL EXPERT: Answer ANY travel question — visa, currency, culture, food, safety, transport, packing, attractions, etc.
 NEVER say "I don't have access to that." You are a full travel expert.
 
-TRIP: ${tripName} | Destination: ${tripDestination||'Not set'} | Budget: ${currencySymbol}${totalBudget}
+TRIP: ${tripName} | Destination: ${tripDestination||'Not set'} | Dates: ${startDate||'TBD'} to ${endDate||'TBD'} | Budget: ${currencySymbol}${totalBudget}
 Spent: ${currencySymbol}${totalSpent.toFixed(2)} (${budgetPct}%) | Remaining: ${currencySymbol}${budgetRemaining.toFixed(2)}
 Companions: ${members.join(', ')||'Solo'} | Today: ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
 
@@ -296,6 +315,28 @@ ITINERARY:\n${itinerary||'None yet.'}
 ${coordsContext?`COORDINATES:\n${coordsContext}`:''}
 ${weatherContext?`WEATHER (${tripDestination}):\n${weatherContext}`:''}
 ${mapContext?`MAP:\n${mapContext}`:''}
+
+━━━ DASHBOARD UPDATE CAPABILITY ━━━
+When the user asks you to plan a trip, add activities, hotel stays, dining, sightseeing, expenses, or any other dashboard data — you MUST include a <WANDR_ACTION> JSON block at the VERY END of your response (after all text). This will automatically save items to their dashboard.
+
+Required JSON format inside the block:
+{
+  "itinerary": [
+    { "title": "Activity name", "location": "Full address or landmark", "start_time": "YYYY-MM-DDTHH:MM:00Z", "notes": "Useful details", "category_icon": "activity" }
+  ],
+  "expenses": [
+    { "description": "What was spent on", "amount": 5000, "category": "Accommodation", "paid_by": "${memberName}" }
+  ]
+}
+
+Rules:
+- category_icon must be one of: transport | food | activity | music | accommodation
+- expense category must be one of: Accommodation | Food & Drinks | Transport | Activities | Shopping | Miscellaneous
+- Use the trip's actual start_date (${startDate||'use trip start date'}) and end_date (${endDate||'use trip end date'}) for scheduling. Spread activities across the full trip duration.
+- For a FULL trip plan (e.g. "plan 7 days in Japan"), generate ALL days with multiple stops each day. Include hotel check-in as accommodation, dining stops as food, sightseeing as activity, flights/trains as transport.
+- If adding expenses, set paid_by to "${memberName}".
+- ONLY include the <WANDR_ACTION> block when the user explicitly wants to add something to their dashboard. For general Q&A, omit it.
+- Wrap the JSON in <WANDR_ACTION> and </WANDR_ACTION> tags exactly.
 
 RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specific actionable advice. Always be positive.`;
   };
@@ -313,7 +354,62 @@ RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specif
       // Build history in Gemini format (used for Gemini; converted for others inside callProviderAPI)
       const history = messages.slice(-12).map(m => ({ role: m.sender==='user'?'user':'model', parts: [{ text: m.text }] }));
       const reply = await callProviderAPI(current.provider, current.apiKey, current.model, systemPrompt, history, text);
-      setMessages(prev => [...prev, { id: 'ai-'+Date.now(), sender: 'ai', text: reply, timestamp: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) }]);
+
+      // ── Parse WANDR_ACTION blocks and execute dashboard updates ─────────
+      const actionMatch = reply.match(/<WANDR_ACTION>([\s\S]*?)<\/WANDR_ACTION>/);
+      const cleanReply  = reply.replace(/<WANDR_ACTION>[\s\S]*?<\/WANDR_ACTION>/g, '').trim();
+      let actionSummary = '';
+
+      if (actionMatch) {
+        try {
+          setLoadingLabel('Updating dashboard…');
+          const jsonStr = actionMatch[1].trim();
+          const actions = JSON.parse(jsonStr);
+          let addedItems = 0, addedExpenses = 0, failedItems = 0;
+
+          if (Array.isArray(actions.itinerary)) {
+            for (const item of actions.itinerary) {
+              const { error: err } = await addItineraryItem(tripId, {
+                title: item.title || 'Untitled',
+                location: item.location || '',
+                start_time: item.start_time,
+                notes: item.notes || '',
+                category_icon: item.category_icon || 'activity',
+              });
+              if (err) failedItems++;
+              else addedItems++;
+            }
+          }
+
+          if (Array.isArray(actions.expenses)) {
+            for (const exp of actions.expenses) {
+              const { error: err } = await addExpense(tripId, {
+                description: exp.description || 'AI-added expense',
+                amount: Number(exp.amount) || 0,
+                category: exp.category || 'Miscellaneous',
+                paid_by: exp.paid_by || memberName,
+              });
+              if (err) failedItems++;
+              else addedExpenses++;
+            }
+          }
+
+          const parts = [];
+          if (addedItems > 0) parts.push(`**${addedItems} itinerary ${addedItems === 1 ? 'activity' : 'activities'}**`);
+          if (addedExpenses > 0) parts.push(`**${addedExpenses} ${addedExpenses === 1 ? 'expense' : 'expenses'}**`);
+          if (parts.length > 0) {
+            actionSummary = `\n\n✅ **Dashboard Updated!** Added ${parts.join(' and ')} to your trip. Switch to the **Dashboard** or **Itinerary** tab to see them.`;
+            onDashboardUpdate?.();
+          }
+          if (failedItems > 0) actionSummary += `\n⚠️ ${failedItems} item(s) failed to save.`;
+        } catch (parseErr) {
+          console.error('WANDR_ACTION parse error:', parseErr);
+          actionSummary = '\n\n⚠️ Dashboard update failed — please try again.';
+        }
+      }
+
+      const finalText = cleanReply + actionSummary;
+      setMessages(prev => [...prev, { id: 'ai-'+Date.now(), sender: 'ai', text: finalText, timestamp: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) }]);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally { setLoading(false); }
@@ -321,8 +417,10 @@ RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specif
 
   const handleSubmit = (e) => { e.preventDefault(); sendMessage(inputText); };
   const handleClear = () => {
-    if (!window.confirm('Clear conversation?')) return;
-    setMessages([{ id: 'welcome-'+Date.now(), sender: 'ai', text: `Cleared! Ask me anything about **"${tripName}"**.`, timestamp: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) }]);
+    if (!window.confirm('Clear conversation? This will permanently delete your chat history for this trip.')) return;
+    try { localStorage.removeItem(CHAT_KEY); } catch {}
+    const welcomeMsg = { id: 'welcome-'+Date.now(), sender: 'ai', text: `Cleared! Ask me anything about **"${tripName}"**.`, timestamp: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
+    setMessages([welcomeMsg]);
     setError(null);
   };
 
@@ -333,7 +431,7 @@ RULES: Use ${currencySymbol} for amounts. Be friendly. Use markdown. Give specif
     { icon: MessageCircle, label: 'Travel Tips',       q: `Give me top 5 travel tips for ${tripDestination||'my destination'}.` },
     { icon: Globe,         label: 'Visa & Entry',      q: `What are the visa requirements for ${tripDestination||'my destination'}?` },
     { icon: TrendingUp,    label: 'Budget Hacks',      q: 'Give me money-saving tips and how to split costs fairly.' },
-    { icon: Compass,       label: 'Best Day Out',      q: 'Based on the weather forecast, which day is best for outdoor sightseeing?' },
+    { icon: Compass,       label: 'Plan Full Trip',    q: `Plan a detailed day-by-day itinerary for my entire trip to ${tripDestination||'my destination'} with hotel stays, dining, sightseeing, and transportation. Add all of it to my dashboard with estimated expenses.` },
     { icon: Lightbulb,     label: 'Local Customs',     q: `What local customs and cultural tips should I know for ${tripDestination||'my destination'}?` },
   ];
 

@@ -942,9 +942,13 @@ function App() {
               tripId={tripMeta.id}
               tripName={tripMeta.name}
               tripDestination={tripMeta.destination}
+              startDate={tripMeta.start_date}
+              endDate={tripMeta.end_date}
               totalBudget={Number(tripMeta.total_budget)}
               currencySymbol={currentUser.currencySymbol || '₹'}
+              memberName={currentUser.name || 'Traveller'}
               onGoToSettings={() => setActiveTab('settings')}
+              onDashboardUpdate={handleRefresh}
             />
           )}
 
