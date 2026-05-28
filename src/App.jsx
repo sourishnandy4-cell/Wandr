@@ -866,7 +866,7 @@ function App() {
           )}
 
           {activeTab === 'docs' && (
-            <TravelDocs tripId={tripMeta.id} />
+            <TravelDocs tripId={tripMeta.id} currentUser={currentUser} />
           )}
 
           {activeTab === 'ai' && (
