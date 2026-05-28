@@ -22,6 +22,9 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Reset input value so the same file can be selected again
+    e.target.value = '';
+
     if (!file.type.startsWith('image/')) {
       setError('Please select a valid image file.');
       return;
@@ -31,34 +34,38 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
     reader.onload = (event) => {
       const img = new window.Image();
       img.onload = () => {
-        // Create canvas to downscale
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 150;
-        const MAX_HEIGHT = 150;
-        let width = img.width;
-        let height = img.height;
+        try {
+          // Create canvas to downscale
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 150;
+          const MAX_HEIGHT = 150;
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
           }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
+
+          canvas.width = Math.round(width);
+          canvas.height = Math.round(height);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // Convert to data url (use png to preserve transparency)
+          const dataUrl = canvas.toDataURL('image/png');
+          setAvatarUrl(dataUrl);
+          setError(null);
+        } catch (err) {
+          setError('Failed to process image file.');
         }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to data url
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        setAvatarUrl(dataUrl);
-        setError(null);
       };
       img.onerror = () => {
         setError('Failed to process image file.');
@@ -184,7 +191,7 @@ export const ProfileModal = ({ user, onClose, onSave }) => {
                     type="file"
                     accept="image/*"
                     onChange={handleFileUpload}
-                    className="hidden"
+                    className="sr-only"
                   />
                 </label>
                 
