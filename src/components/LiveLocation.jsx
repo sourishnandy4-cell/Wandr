@@ -676,7 +676,7 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
 
       {/* ── TOP BAR: always visible ── */}
       {!isNavigating && (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 20, padding: '14px 18px', marginBottom: 14, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, boxShadow: 'var(--glass-shadow)' }}>
+        <div className="nav-top-bar" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 20, padding: '14px 18px', marginBottom: 14, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, boxShadow: 'var(--glass-shadow)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ padding: 9, background: 'var(--accent-glow)', borderRadius: 13 }}>
               <Navigation size={18} color="var(--accent)" />
@@ -688,7 +688,7 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+          <div className="nav-top-bar-right" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
             <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: 14, padding: 3, gap: 2 }}>
               {Object.entries(MODES).map(([key, m]) => {
                 const Icon = m.icon;
@@ -708,7 +708,7 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
       )}
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{
+      <div className="nav-main-content" style={{
         display: isNavigating ? 'block' : 'grid',
         gridTemplateColumns: '1fr 310px',
         gap: 14,
@@ -719,7 +719,7 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
             PERSISTENT MAP WRAPPER — mapRef NEVER unmounts
             In nav mode: full screen. In normal mode: left column.
         ════════════════════════════════════════════════════════════════ */}
-        <div style={{
+        <div className={`nav-map-wrapper ${isNavigating ? 'navigating' : ''}`} style={{
           position: 'relative',
           borderRadius: isNavigating ? 24 : 22,
           overflow: 'hidden',
@@ -767,14 +767,14 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
           {isNavigating && (
             <>
               {/* TOP: Turn instruction card */}
-              <div style={{
+              <div className="nav-turn-card" style={{
                 position: 'absolute', top: 16, left: 16, right: 16, zIndex: 600,
                 background: '#1a73e8', borderRadius: 18, padding: '14px 18px',
                 display: 'flex', alignItems: 'center', gap: 14,
                 boxShadow: '0 6px 28px rgba(26,115,232,0.5)',
                 animation: 'slideDown 0.4s ease',
               }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' }}>
+                <div className="nav-turn-icon-wrap" style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' }}>
                   <NavIcon type={currentInstruction?.type} size={26} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -783,12 +783,12 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
                       In {currentInstruction.distance}
                     </span>
                   )}
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#fff', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <p className="nav-turn-text" style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#fff', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {currentInstruction?.text || 'Follow the highlighted route'}
                   </p>
                 </div>
                 {instructions[navStep + 1] && (
-                  <div style={{ flexShrink: 0, textAlign: 'right', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: 14, minWidth: 90 }}>
+                  <div className="nav-turn-then" style={{ flexShrink: 0, textAlign: 'right', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: 14, minWidth: 90 }}>
                     <span style={{ display: 'block', fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: 1 }}>Then</span>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 100 }}>
                       {instructions[navStep + 1]?.text}
@@ -798,7 +798,7 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
               </div>
 
               {/* RIGHT: FAB buttons */}
-              <div style={{ position: 'absolute', right: 16, top: 110, zIndex: 600, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="nav-fab-group" style={{ position: 'absolute', right: 16, top: 110, zIndex: 600, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button onClick={() => { if (mapInst.current && userCoords) mapInst.current.setView([userCoords.lat, userCoords.lng], 17, { animate: true }); }} style={fabBtn}>
                   <LocateFixed size={18} color="#1a73e8" />
                 </button>
@@ -808,15 +808,15 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
               </div>
 
               {/* BOTTOM: Speed / ETA / Stop HUD */}
-              <div style={{
+              <div className="nav-bottom-hud" style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 600,
                 background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.75) 55%, transparent 100%)',
                 padding: '40px 24px 28px',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 580, margin: '0 auto' }}>
+                <div className="nav-bottom-hud-stats" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 580, margin: '0 auto' }}>
                   {/* Speed */}
                   <div style={{ textAlign: 'center', minWidth: 64 }}>
-                    <span style={{ display: 'block', fontSize: 40, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{navSpeed}</span>
+                    <span className="nav-bottom-hud-title" style={{ display: 'block', fontSize: 40, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{navSpeed}</span>
                     <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1.2 }}>km/h</span>
                   </div>
 
@@ -961,6 +961,98 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
         .leaflet-routing-container { display:none !important; }
         .leaflet-routing-error { display:none !important; }
         .leaflet-control-zoom { margin-top:70px !important; }
+
+        /* ─── RESPONSIVE MOBILE STYLES ─── */
+        @media (max-width: 768px) {
+          .nav-top-bar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 12px 14px !important;
+            gap: 12px !important;
+            border-radius: 16px !important;
+          }
+          .nav-top-bar-right {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+          .nav-top-bar-right > div {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            padding: 2px !important;
+          }
+          .nav-top-bar-right > div button {
+            justify-content: center !important;
+            padding: 6px 4px !important;
+            font-size: 10px !important;
+          }
+          .nav-top-bar-right > div button span {
+            display: none !important;
+          }
+          @media (min-width: 400px) {
+            .nav-top-bar-right > div button span {
+              display: inline !important;
+            }
+          }
+          .nav-top-bar-right > button {
+            width: 100% !important;
+            padding: 7px 0 !important;
+            text-align: center !important;
+          }
+          
+          .nav-main-content {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+          }
+          
+          .nav-map-wrapper {
+            height: 350px !important;
+            border-radius: 16px !important;
+          }
+          .nav-map-wrapper.navigating {
+            height: calc(100vh - 120px) !important;
+            min-height: 480px !important;
+            border-radius: 0px !important;
+          }
+          
+          /* Navigation Mode Overlays */
+          .nav-turn-card {
+            top: 10px !important;
+            left: 10px !important;
+            right: 10px !important;
+            padding: 10px 14px !important;
+            border-radius: 14px !important;
+            gap: 10px !important;
+            box-shadow: 0 4px 16px rgba(26,115,232,0.3) !important;
+          }
+          .nav-turn-icon-wrap {
+            width: 38px !important;
+            height: 38px !important;
+            border-radius: 10px !important;
+          }
+          .nav-turn-text {
+            font-size: 13px !important;
+          }
+          .nav-turn-then {
+            display: none !important;
+          }
+          
+          .nav-fab-group {
+            top: 76px !important;
+            right: 10px !important;
+          }
+          
+          .nav-bottom-hud {
+            padding: 24px 16px 20px !important;
+          }
+          .nav-bottom-hud-stats {
+            gap: 12px !important;
+          }
+          .nav-bottom-hud-title {
+            font-size: 32px !important;
+          }
+        }
       `}</style>
     </div>
   );
