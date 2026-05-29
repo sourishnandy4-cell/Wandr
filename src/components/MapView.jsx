@@ -125,7 +125,7 @@ export const MapView = ({ tripId, tripDestination }) => {
         center = await geocodeLocation(tripDestination);
         setGeocodingStatus('');
       }
-      if (!center) center = { lat: 41.3851, lng: 2.1734 }; // Barcelona fallback
+      if (!center) center = { lat: 28.6139, lng: 77.2090 }; // New Delhi, India fallback
       destinationCenterRef.current = center; // store for Discover Nearby fallback
 
       const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: true }).setView([center.lat, center.lng], 13);

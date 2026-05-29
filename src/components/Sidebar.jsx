@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, MapPin, Receipt, FileText, LogOut, Plane, Bot, Users, X, Map, Cloud, Settings, Compass, Loader2 } from 'lucide-react';
+import { LayoutDashboard, MapPin, Receipt, FileText, LogOut, Plane, Bot, Users, X, Map, Cloud, Settings, Compass, Loader2, Navigation } from 'lucide-react';
 
 export const Sidebar = ({ 
   activeTab = 'dashboard', 
@@ -18,12 +18,12 @@ export const Sidebar = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'itinerary', label: 'Itinerary', icon: MapPin },
     { id: 'expenses', label: 'Expenses', icon: Receipt },
+    { id: 'livelocation', label: 'Live Location', icon: Navigation },
     { id: 'map', label: 'Map', icon: Map },
     { id: 'weather', label: 'Weather', icon: Cloud },
     { id: 'members', label: 'Members', icon: Users },
     { id: 'docs', label: 'Docs', icon: FileText },
     { id: 'ai', label: 'AI Assistant', icon: Bot },
-    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (

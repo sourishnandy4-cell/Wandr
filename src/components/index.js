@@ -17,3 +17,4 @@ export { MapView } from './MapView';
 export { WeatherView } from './WeatherView';
 export { LoadingScreen } from './LoadingScreen';
 export { CursorPlane } from './CursorPlane';
+export { LiveLocation } from './LiveLocation';

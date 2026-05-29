@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, AIAssistant, TripMembers, MapView, WeatherView, LoadingScreen, CursorPlane } from './components';
+import { Sidebar, Header, ItineraryTimeline, BudgetPieChart, RecentExpenses, BalanceSheet, Login, ProfileModal, TravelDocs, AIAssistant, TripMembers, MapView, WeatherView, LoadingScreen, CursorPlane, LiveLocation } from './components';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { supabase, isMockMode as _isMockMode, setRuntimeMockMode, USE_MOCK_MODE, getFriendlyErrorMessage, isNetworkError } from './lib/supabaseClient';
 
@@ -1075,6 +1075,16 @@ function App() {
               <MapView
                 tripId={tripMeta.id}
                 tripDestination={tripMeta.destination}
+              />
+            </div>
+          )}
+
+          {activeTab === 'livelocation' && (
+            <div className="animate-fadeIn">
+              <LiveLocation
+                tripId={tripMeta.id}
+                tripDestination={tripMeta.destination}
+                currentUser={currentUser}
               />
             </div>
           )}

@@ -479,6 +479,7 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
               }}>
                 {[
                   { label: 'Customize Profile', onClick: () => { setShowDropdown(false); onProfileClick?.(); }, color: 'var(--accent)', weight: 700 },
+                  { label: 'Settings', onClick: () => { setShowDropdown(false); onNavigate?.('settings'); }, color: 'var(--text-secondary)', weight: 500 },
                   { label: 'Switch / New Trip', onClick: () => { setShowDropdown(false); onSwitchTrip?.(); }, color: 'var(--text-secondary)', weight: 500 },
                   { label: 'Sign Out', onClick: () => { setShowDropdown(false); onLogout?.(); }, color: 'var(--accent-coral)', weight: 500 },
                 ].map((item) => (

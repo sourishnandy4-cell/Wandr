@@ -1029,26 +1029,26 @@ export const TravelDocs = ({ tripId, currentUser, tripDestination }) => {
         <div className="space-y-6">
 
           {/* ── Region Emergency Contacts Card ── */}
-          <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-100 rounded-2xl p-5 space-y-3">
-            <div className="flex items-center gap-2 border-b border-red-100/70 pb-3">
-              <div className="p-1.5 bg-red-100 rounded-lg"><ShieldAlert className="w-4 h-4 text-red-500" /></div>
+          <div className="bg-gradient-to-br from-[var(--accent-coral)]/10 to-[var(--bg-secondary)] border border-[var(--accent-coral)]/20 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center gap-2 border-b border-[var(--accent-coral)]/25 pb-3">
+              <div className="p-1.5 bg-[var(--accent-coral)]/15 rounded-lg"><ShieldAlert className="w-4 h-4 text-[var(--accent-coral)]" /></div>
               <div>
-                <h3 className="font-extrabold text-sm text-red-700">Emergency Contacts — {emergency.label}</h3>
-                <p className="text-[10px] text-red-400 font-medium">Auto-populated based on your trip destination</p>
+                <h3 className="font-extrabold text-sm text-[var(--accent-coral)]">Emergency Contacts — {emergency.label}</h3>
+                <p className="text-[10px] text-[var(--text-muted)] font-medium">Auto-populated based on your trip destination</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {emergency.lines.map((line, i) => (
-                <div key={i} className="flex items-center gap-3 bg-white/70 border border-red-100/50 rounded-xl px-3 py-2.5">
+                <div key={i} className="flex items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl px-3 py-2.5">
                   <span className="text-lg leading-none flex-shrink-0">{line.icon}</span>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">{line.label}</p>
-                    <p className="text-sm font-extrabold text-red-600 font-mono tracking-wide">{line.number}</p>
+                    <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider truncate">{line.label}</p>
+                    <p className="text-sm font-extrabold text-[var(--accent-coral)] font-mono tracking-wide">{line.number}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-red-400 font-medium pl-1">
+            <p className="text-[10px] text-[var(--text-muted)] font-medium pl-1">
               ℹ️ Numbers match your trip destination. Change destination in Trip Settings to update.
             </p>
           </div>
