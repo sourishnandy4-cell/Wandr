@@ -923,7 +923,6 @@ function App() {
 
       {/* Main Content Area */}
       <div className="md:ml-64 min-h-screen relative">
-        )}
 
         {/* ── Destination background image via Wikipedia API (CSP-safe) ── */}
         {destBgUrl && (
