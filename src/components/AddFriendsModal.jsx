@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Users, Copy, Check, Share2, Link2, Info } from 'lucide-react';
 import { isMockMode } from '../lib/supabaseClient';
 import {
@@ -59,7 +60,7 @@ export const AddFriendsModal = ({ tripId, tripName, onClose, currentFriends = []
     setTimeout(() => setCopied(false), 2500);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
 
@@ -157,6 +158,7 @@ export const AddFriendsModal = ({ tripId, tripName, onClose, currentFriends = []
           Done
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
