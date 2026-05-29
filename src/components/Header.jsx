@@ -95,10 +95,10 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
   };
 
   return (
-    <header className="wandr-header" style={{ position: 'relative', zIndex: 50, padding: '16px 20px', marginBottom: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+    <header className="wandr-header" style={{ position: 'relative', zIndex: 30, padding: '12px 16px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', minWidth: 0 }}>
         {/* Left: Mobile Menu + Trip Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
           {/* Mobile Menu Button */}
           <button
             onClick={onMenuClick}
@@ -117,25 +117,29 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
             <Menu className="w-6 h-6" />
           </button>
           
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h1 className="trip-name" style={{
-              fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)',
+              fontSize: 'clamp(1.1rem, 2vw, 1.5rem)',
               fontWeight: 800,
               letterSpacing: '-0.5px',
               color: 'var(--text-primary)',
               margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}>
               {tripName}
             </h1>
             <span style={{
               display: 'inline-block',
               marginTop: '4px',
-              padding: '4px 12px',
+              padding: '4px 10px',
               background: 'var(--accent-glow)',
               color: 'var(--accent)',
-              fontSize: '0.78rem',
+              fontSize: '0.75rem',
               fontWeight: 600,
               borderRadius: '20px',
+              whiteSpace: 'nowrap',
             }}>
               {dateRange}
             </span>

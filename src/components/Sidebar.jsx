@@ -19,20 +19,23 @@ export const Sidebar = ({ activeTab = 'dashboard', onTabChange, user, onLogout, 
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 md:hidden"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 md:hidden"
+          style={{ zIndex: 9999, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
           onClick={onClose}
         />
       )}
       
       {/* Sidebar */}
-      <aside className={`
-        wandr-sidebar fixed left-0 top-0 h-screen w-64 z-50
-        transform transition-transform duration-300 ease-in-out
-        md:transform-none
-        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        flex flex-col
-      `}>
+      <aside 
+        className={`
+          wandr-sidebar fixed left-0 top-0 h-screen w-64
+          transform transition-transform duration-300 ease-in-out
+          md:transform-none
+          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          flex flex-col
+        `}
+        style={{ zIndex: 10000 }}
+      >
         {/* Logo + Close Button */}
         <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

@@ -858,7 +858,7 @@ function App() {
           />
         )}
 
-        <div className="relative max-w-7xl mx-auto p-6">
+        <div className="relative max-w-7xl mx-auto p-3 md:p-6">
           {/* Header */}
           <Header 
             tripId={tripMeta.id}

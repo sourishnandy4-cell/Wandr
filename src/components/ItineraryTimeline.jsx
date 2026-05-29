@@ -181,7 +181,7 @@ export const ItineraryTimeline = ({ tripId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa
   }, {}) : {};
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-primary">Itinerary Timeline</h2>
         <button
@@ -286,12 +286,12 @@ export const ItineraryTimeline = ({ tripId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa
         <div className="space-y-8">
           {Object.entries(groupedByDate).map(([date, dayItems]) => (
             <div key={date} className="relative">
-              <div className="flex items-start gap-4">
-                <div className="w-24 flex-shrink-0">
-                  <div className="text-sm font-bold text-primary">{date}</div>
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="w-16 md:w-24 flex-shrink-0">
+                  <div className="text-xs md:text-sm font-bold text-primary break-words">{date}</div>
                 </div>
 
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
                   <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200"></div>
                   
                   <div className="space-y-4">
@@ -306,11 +306,11 @@ export const ItineraryTimeline = ({ tripId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa
                       });
 
                       return (
-                        <div key={item.id} className="relative pl-8 group">
+                        <div key={item.id} className="relative pl-6 md:pl-8 group">
                           <div className="absolute left-0 top-2 w-3 h-3 bg-accent rounded-full -translate-x-[5px] ring-4 ring-white"></div>
 
-                          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                            <div className="flex items-start gap-3">
+                          <div className="bg-white border border-gray-100 rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+                            <div className="flex items-start gap-2 md:gap-3">
                               <div className={`p-2 rounded-lg flex-shrink-0 ${colorClass.split(' ')[0]}`}>
                                 <Icon className={`w-5 h-5 ${colorClass.split(' ')[1]}`} />
                               </div>
@@ -322,10 +322,10 @@ export const ItineraryTimeline = ({ tripId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa
                                     {item.category_icon || 'activity'}
                                   </span>
                                 </div>
-                                <h3 className="font-bold text-primary mb-1">{item.title}</h3>
-                                {item.location && <p className="text-sm text-gray-600">{item.location}</p>}
+                                <h3 className="font-bold text-primary mb-1 break-words leading-tight">{item.title}</h3>
+                                {item.location && <p className="text-xs md:text-sm text-gray-600 break-words leading-snug">{item.location}</p>}
                                 {item.notes && (
-                                  <p className="text-xs text-gray-500 mt-2 italic">{item.notes}</p>
+                                  <p className="text-[10px] md:text-xs text-gray-500 mt-2 italic break-words leading-snug">{item.notes}</p>
                                 )}
                               </div>
 
