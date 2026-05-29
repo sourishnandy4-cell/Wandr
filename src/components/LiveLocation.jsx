@@ -176,8 +176,8 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
 
   const fallbackLocation = async () => {
     setSimMode(true);
-    let c = { lat: 28.6139, lng: 77.2090 }, label = 'New Delhi, India';
-    if (tripDestination) { const g = await geocode(tripDestination); if (g) { c = { lat: g.lat, lng: g.lng }; label = tripDestination; } }
+    // Point towards Paris by default (independent of trip name, as requested)
+    let c = { lat: 48.8566, lng: 2.3522 }, label = 'Paris, France';
     setUserCoords(c); setStartStr(label); setLoading(false);
   };
 
