@@ -152,6 +152,10 @@ function App() {
       }
     } catch (err) {
       console.error('Failed to load existing trips:', err);
+      const isNet = err instanceof TypeError || err.message?.includes('fetch') || err.message?.includes('Network');
+      if (isNet) {
+        setRuntimeMockMode();
+      }
       // On network failure, surface any locally saved trips so the user isn't left with nothing
       try {
         const localTrips = MOCK_TRIPS.filter(trip => {
