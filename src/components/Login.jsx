@@ -49,7 +49,7 @@ export const Login = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       const { currencySymbol, currencyCode } = getRegionDetails(region);
-      if (isMockMode()) {
+      if (isMockMode(true)) {
         let result;
         if (isSignUp) {
           result = await signUp({ email, password, username: name, region, currencySymbol, currencyCode });
@@ -287,7 +287,7 @@ export const Login = ({ onLoginSuccess }) => {
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-300" />
               <span>{error}</span>
             </div>
-            {isMockMode() && (
+            {isMockMode(true) && (
               <button
                 type="button"
                 onClick={() => {
@@ -397,7 +397,7 @@ export const Login = ({ onLoginSuccess }) => {
 
         {/* Footer note */}
         <p className="text-[10px] text-white/35 text-center">
-          {isMockMode()
+          {isMockMode(true)
             ? '🔒 Password hashed with SHA-256 — never sent anywhere'
             : '🔒 Secured by Supabase Auth'}
         </p>

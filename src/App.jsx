@@ -4,7 +4,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { supabase, isMockMode as _isMockMode, setRuntimeMockMode, USE_MOCK_MODE, getFriendlyErrorMessage, isNetworkError } from './lib/supabaseClient';
 
 // Helper: returns true if we should use local mock storage
-const isMockMode = () => _isMockMode();
+const isMockMode = (ignoreActiveTripId = false) => _isMockMode(ignoreActiveTripId);
 import {
   MOCK_TRIPS,
   MOCK_TRIP_MEMBERS,
@@ -397,7 +397,7 @@ function App() {
   }, [tripMeta?.destination]);
 
   const handleLogout = async () => {
-    if (!USE_MOCK_MODE) {
+    if (!isMockMode(true)) {
       await supabase.auth.signOut();
     } else {
       // Clear session token so other users on this device can't hijack the session
@@ -441,7 +441,7 @@ function App() {
     setShowProfileModal(false);
 
     try {
-      if (isMockMode()) {
+      if (isMockMode(true)) {
         const raw = localStorage.getItem('wandr_mock_users');
         if (raw) {
           const users = JSON.parse(raw);
@@ -516,7 +516,7 @@ function App() {
         membersList.push(currentUser.name);
       }
 
-      if (isMockMode()) {
+      if (isMockMode(true)) {
         MOCK_TRIPS.push({
           id: generatedId,
           name: newTripName,
