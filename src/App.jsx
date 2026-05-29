@@ -92,8 +92,6 @@ function App() {
           
           if (memberErr) {
             if (isNetworkError(memberErr)) {
-              setDbConnected(false);
-              setRuntimeMockMode();
               const myTrips = MOCK_TRIPS.filter(trip => {
                 const membersEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === trip.id);
                 return membersEntry && membersEntry.members.includes(currentUser.name);
@@ -120,8 +118,6 @@ function App() {
         const { data, error } = await query;
         if (error) {
           if (isNetworkError(error)) {
-            setDbConnected(false);
-            setRuntimeMockMode();
             const myTrips = MOCK_TRIPS.filter(trip => {
               const membersEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === trip.id);
               return membersEntry && membersEntry.members.includes(currentUser.name);
@@ -144,10 +140,6 @@ function App() {
         }
     } catch (err) {
       console.error('Failed to load existing trips:', err);
-      if (isNetworkError(err)) {
-        setDbConnected(false);
-        setRuntimeMockMode();
-      }
       // On network failure, surface any locally saved trips so the user isn't left with nothing
       try {
         const localTrips = MOCK_TRIPS.filter(trip => {
@@ -597,9 +589,7 @@ function App() {
     } catch (err) {
       // Network-level failures (Supabase paused / offline) — fall back to local mock storage
       if (isNetworkError(err)) {
-        setDbConnected(false);
         console.warn('[Wandr] Supabase unreachable — saving trip locally instead.', err);
-        setRuntimeMockMode();
         try {
           const membersList2 = newTripMembers
             .split(',')
@@ -819,7 +809,7 @@ function App() {
                         <button
                           type="button"
                           onClick={(e) => handleDeleteTrip(e, trip.id)}
-                          className="p-1.5 text-gray-450 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          className="p-1.5 text-gray-450 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                           title="Delete Trip"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
