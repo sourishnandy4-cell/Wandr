@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Lock, User, ArrowRight, AlertCircle, Globe, UserCheck, Info, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, Globe, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { supabase, isMockMode } from '../lib/supabaseClient';
 import { login, signUp } from '../lib/authService';
 
@@ -249,16 +249,7 @@ export const Login = ({ onLoginSuccess }) => {
       <div className="absolute bottom-16 right-12 w-32 h-32 rounded-full bg-sky-400/10 blur-3xl animate-pulse" style={{animationDelay:'1.5s'}} />
 
 
-      {/* Demo mode banner */}
-      {isMockMode() && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-20">
-          <div className="flex items-start gap-2 rounded-2xl px-4 py-2.5 text-amber-200 text-xs"
-            style={{ background:'rgba(120,80,0,0.55)', border:'1px solid rgba(251,191,36,0.35)', backdropFilter:'blur(12px)' }}>
-            <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-amber-300" />
-            <span><strong>Demo Mode</strong> — data is saved locally on this device only. No cloud backup.</span>
-          </div>
-        </div>
-      )}
+
 
       {/* Pending invite banner */}
       {hasPendingInvite && (

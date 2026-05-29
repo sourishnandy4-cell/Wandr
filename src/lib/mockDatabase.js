@@ -82,7 +82,7 @@ export const saveMockData = () => {
 };
 
 export const mockFetchTripMeta = async (tripId) => {
-  const trip = MOCK_TRIPS.find(t => t.id === tripId) || MOCK_TRIP_META;
+  const trip = MOCK_TRIPS.find(t => t.id === tripId) || null;
   return { data: trip, error: null };
 };
 

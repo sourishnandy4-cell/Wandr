@@ -14,7 +14,7 @@ import {
   mockDeleteTrip,
   saveMockData,
 } from './lib/mockDatabase';
-import { Loader2, Sparkles, MapPin, Calendar, DollarSign, Compass, ArrowRight, BookOpen, Trash2, Settings, Info, Palette, Globe, Sliders, Bell, Check, ChevronDown } from 'lucide-react';
+import { Loader2, Sparkles, MapPin, Calendar, Compass, ArrowRight, BookOpen, Trash2, Settings, Palette, Globe, Sliders, Check, ChevronDown } from 'lucide-react';
 import { AISettingsPanel } from './components/AISettings';
 
 function App() {
@@ -482,6 +482,17 @@ function App() {
 
   const handleLoadDemo = () => {
     const demoId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    // Ensure the current user is a member of the demo trip so it appears in their saved trips
+    const existingEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === demoId);
+    if (existingEntry) {
+      if (currentUser && !existingEntry.members.includes(currentUser.name)) {
+        existingEntry.members.push(currentUser.name);
+        saveMockData();
+      }
+    } else {
+      MOCK_TRIP_MEMBERS.push({ trip_id: demoId, members: [currentUser?.name || 'Guest'] });
+      saveMockData();
+    }
     localStorage.setItem('wandr_active_trip_id', demoId);
     setActiveTripId(demoId);
   };
@@ -655,13 +666,6 @@ function App() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 font-sans" style={{ background: 'var(--bg-gradient)' }}>
 
-        {/* Demo Mode Banner */}
-        {isMockMode() && (
-          <div className="w-full max-w-4xl mb-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-amber-800 text-xs">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
-            <span><strong>Demo Mode</strong> — You're in demo mode. Data is saved locally on this device only. Nothing is backed up to a cloud server.</span>
-          </div>
-        )}
 
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-5 gap-6 rounded-3xl shadow-xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300 relative overflow-hidden glass-card" style={{ borderRadius: 'var(--radius-lg)' }}>
           
@@ -922,29 +926,7 @@ function App() {
       {/* Cursor Plane Follower */}
       <CursorPlane />
 
-      {/* ── Demo Mode Banner (sticky, always visible in mock mode) ── */}
-      {isMockMode() && (
-        <div className="w-full flex items-center justify-between border-b px-4 py-2 text-xs" style={{ background: 'var(--accent-glow)', borderColor: 'var(--accent-warm)', color: 'var(--text-secondary)' }}>
-          <div className="flex items-center gap-2">
-            <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-warm)' }} />
-            <span>
-              <strong>Demo Mode</strong> — data is saved locally on this device only. No cloud backup.
-            </span>
-          </div>
-          <button
-            onClick={() => {
-              try {
-                sessionStorage.removeItem('wandr_supabase_offline');
-              } catch {}
-              window.location.reload();
-            }}
-            className="px-2.5 py-1 bg-white hover:bg-slate-50 text-[#d8976b] border border-[#E8A87C]/30 rounded-lg font-bold transition-all duration-200"
-            style={{ fontSize: '10px' }}
-          >
-            Go Live / Sync Cloud ✈️
-          </button>
-        </div>
-      )}
+
 
       {/* Sidebar */}
       <Sidebar 
