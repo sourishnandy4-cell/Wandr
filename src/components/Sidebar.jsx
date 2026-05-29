@@ -1,7 +1,19 @@
 import React from 'react';
-import { LayoutDashboard, MapPin, Receipt, FileText, LogOut, Plane, Bot, Users, X, Map, Cloud, Settings } from 'lucide-react';
+import { LayoutDashboard, MapPin, Receipt, FileText, LogOut, Plane, Bot, Users, X, Map, Cloud, Settings, Compass, Loader2 } from 'lucide-react';
 
-export const Sidebar = ({ activeTab = 'dashboard', onTabChange, user, onLogout, onProfileClick, isOpen, onClose }) => {
+export const Sidebar = ({ 
+  activeTab = 'dashboard', 
+  onTabChange, 
+  user, 
+  onLogout, 
+  onProfileClick, 
+  isOpen, 
+  onClose,
+  existingTrips = [],
+  activeTripId = null,
+  onSelectTrip = null,
+  tripsLoading = false
+}) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'itinerary', label: 'Itinerary', icon: MapPin },
@@ -84,7 +96,7 @@ export const Sidebar = ({ activeTab = 'dashboard', onTabChange, user, onLogout, 
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <nav style={{ flex: 1, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }} className="custom-scrollbar">
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -113,6 +125,107 @@ export const Sidebar = ({ activeTab = 'dashboard', onTabChange, user, onLogout, 
             );
           })}
         </nav>
+
+        {/* Saved Trips Switcher */}
+        {existingTrips && existingTrips.length > 0 && (
+          <div style={{
+            padding: '16px 12px 8px',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}>
+            <div style={{
+              fontSize: '0.65rem',
+              fontWeight: 850,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              color: 'var(--text-on-sidebar-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 4px',
+            }}>
+              <span className="flex items-center gap-1.5" style={{ color: 'var(--text-on-sidebar)' }}>
+                <Compass className="w-3.5 h-3.5 text-accent animate-pulse" />
+                Your Saved Trips
+              </span>
+              {tripsLoading && <Loader2 className="w-3 h-3 animate-spin text-accent" />}
+            </div>
+            
+            <div style={{
+              maxHeight: '130px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              paddingRight: '4px',
+            }} className="custom-scrollbar">
+              {existingTrips.map(trip => {
+                const isActive = trip.id === activeTripId;
+                return (
+                  <button
+                    key={trip.id}
+                    onClick={() => {
+                      if (!isActive) {
+                        onSelectTrip?.(trip.id);
+                        onClose?.();
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 10px',
+                      borderRadius: '10px',
+                      background: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)',
+                      border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontFamily: 'inherit',
+                    }}
+                    className={`hover:bg-white/5 group`}
+                  >
+                    <div style={{ minWidth: 0, flex: 1, paddingRight: '4px' }}>
+                      <div style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        color: isActive ? 'var(--accent)' : 'var(--text-on-sidebar)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}>
+                        {trip.name}
+                      </div>
+                      <div style={{
+                        fontSize: '0.6rem',
+                        color: 'var(--text-on-sidebar-muted)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        marginTop: '2px',
+                      }}>
+                        {trip.destination}
+                      </div>
+                    </div>
+                    {isActive && (
+                      <span style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: 'var(--accent)',
+                        boxShadow: '0 0 6px var(--accent)',
+                        flexShrink: 0,
+                      }} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* User Section */}
         <div style={{

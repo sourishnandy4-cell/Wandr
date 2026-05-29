@@ -82,6 +82,15 @@ function App() {
     if (!currentUser) return;
     setTripsLoading(true);
     try {
+        if (isMockMode(true)) {
+          const myTrips = MOCK_TRIPS.filter(trip => {
+            const membersEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === trip.id);
+            return membersEntry && membersEntry.members.includes(currentUser.name);
+          });
+          setExistingTrips(myTrips);
+          setTripsLoading(false);
+          return;
+        }
         // First get the trip IDs the user is a member of
         let tripIds = [];
         if (currentUser.id) {
@@ -177,6 +186,17 @@ function App() {
 
   useEffect(() => {
     if (currentUser) {
+      // Clear active trip if it was a guest/demo/mock trip so they don't get trapped in guest mode
+      const activeTrip = localStorage.getItem('wandr_active_trip_id');
+      if (activeTrip) {
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeTrip);
+        const isDemo = activeTrip === 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+        if (isDemo || !isUUID) {
+          localStorage.removeItem('wandr_active_trip_id');
+          setActiveTripId(null);
+          setTripMeta(null);
+        }
+      }
       fetchExistingTrips();
       autoMigrateLocalTrips();
     }
@@ -618,10 +638,12 @@ function App() {
           setNewBudget('');
           setNewTripMembers(currentUser?.name || '');
           
-          alert(
-            `Wandr Cloud was unreachable, so "${newTripName}" was saved locally to this device instead.\n\n` +
-            `To sync this trip and access it on other devices (like your phone), please check your connection (or disable your adblocker for this site) and click the "Sync to Cloud" button at the top of your dashboard.`
-          );
+          setTimeout(() => {
+            alert(
+              `Wandr Cloud was unreachable, so "${newTripName}" was saved locally to this device instead.\n\n` +
+              `To sync this trip and access it on other devices (like your phone), please check your connection (or disable your adblocker for this site) and click the "Sync to Cloud" button at the top of your dashboard.`
+            );
+          }, 100);
           return; // success via fallback — no error shown
         } catch (fallbackErr) {
           setOnboardingError('Could not reach the server and local save also failed. Please refresh and try again.');
@@ -786,7 +808,11 @@ function App() {
                 </span>
               </div>
               
-              {existingTrips.length === 0 ? (
+              {tripsLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-xs text-gray-400 font-bold uppercase tracking-wider font-sans">
+                  <Loader2 className="w-4 h-4 animate-spin text-accent" /> Loading Your Journeys...
+                </div>
+              ) : existingTrips.length === 0 ? (
                 <p className="text-xs text-gray-400 italic">No saved trips found. Create one on the left!</p>
               ) : (
                 <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
@@ -907,6 +933,14 @@ function App() {
         onProfileClick={() => setShowProfileModal(true)}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        existingTrips={existingTrips}
+        activeTripId={activeTripId}
+        onSelectTrip={(tripId) => {
+          localStorage.setItem('wandr_active_trip_id', tripId);
+          setActiveTripId(tripId);
+          handleRefresh();
+        }}
+        tripsLoading={tripsLoading}
       />
 
       {/* Main Content Area */}

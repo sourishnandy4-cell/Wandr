@@ -71,18 +71,16 @@ export const isNetworkError = (err) => {
   );
 };
 
-/**
- * Returns a user-friendly diagnostic message for network errors
- */
 export const getFriendlyErrorMessage = (err, defaultMsg = 'An error occurred.') => {
+  const rawError = err ? `\n\n[Diagnostic Details: ${err.message || String(err)}]` : '';
   if (isNetworkError(err)) {
     return 'Failed to connect to the cloud database.\n\n' +
            'This is commonly caused by:\n' +
            '1. An adblocker or privacy extension (e.g., Brave Shields, uBlock Origin) blocking the database server. Try turning off shields/adblocker for this site.\n' +
            '2. A network firewall or office/school Wi-Fi restriction blocking database ports.\n' +
            '3. Your device being offline or having an unstable connection.\n\n' +
-           'Please check your connection and try again.';
+           'Please check your connection and try again.' + rawError;
   }
-  return err.message || defaultMsg;
+  return (err?.message || defaultMsg) + rawError;
 };
 
