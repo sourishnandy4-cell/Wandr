@@ -454,6 +454,180 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   NEON THEME — GLOW SYSTEM
+   Electric glow on every interactive surface
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Animated neon scanline / grid background ── */
+[data-theme="neon"] #root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(74,144,217,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,144,217,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: neonGridPulse 4s ease-in-out infinite;
+}
+
+@keyframes neonGridPulse {
+  0%,100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* ── Sidebar neon glow ── */
+[data-theme="neon"] .wandr-sidebar {
+  border-right: 1px solid rgba(74,144,217,0.3);
+  box-shadow: 4px 0 30px rgba(74,144,217,0.12), inset -1px 0 0 rgba(74,144,217,0.2);
+}
+
+[data-theme="neon"] .wandr-sidebar .nav-item.active {
+  background: rgba(74,144,217,0.15) !important;
+  box-shadow: 0 0 20px rgba(74,144,217,0.3), inset 0 0 20px rgba(74,144,217,0.05);
+  color: #7ec8ff !important;
+  text-shadow: 0 0 8px rgba(74,144,217,0.8);
+}
+
+[data-theme="neon"] .wandr-sidebar .nav-item.active::before {
+  background: #4A90D9;
+  box-shadow: 0 0 8px #4A90D9, 0 0 20px rgba(74,144,217,0.6);
+  width: 3px;
+}
+
+[data-theme="neon"] .wandr-sidebar .nav-item:hover {
+  background: rgba(74,144,217,0.1) !important;
+  color: #7ec8ff !important;
+  text-shadow: 0 0 6px rgba(74,144,217,0.6);
+}
+
+[data-theme="neon"] .wandr-sidebar .nav-item:hover svg {
+  filter: drop-shadow(0 0 4px rgba(74,144,217,0.8));
+}
+
+[data-theme="neon"] .wandr-sidebar .nav-item.active svg {
+  filter: drop-shadow(0 0 6px #4A90D9);
+}
+
+/* ── Header neon glow ── */
+[data-theme="neon"] .wandr-header {
+  border: 1px solid rgba(74,144,217,0.3);
+  box-shadow: 0 0 30px rgba(74,144,217,0.12), 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* ── Cards neon glow ── */
+[data-theme="neon"] .bg-white,
+[data-theme="neon"] .rounded-2xl,
+[data-theme="neon"] .rounded-3xl {
+  border-color: rgba(74,144,217,0.15) !important;
+}
+
+[data-theme="neon"] .shadow-sm,
+[data-theme="neon"] .shadow-md {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(74,144,217,0.08) !important;
+}
+
+[data-theme="neon"] .hover\:shadow-md:hover,
+[data-theme="neon"] .hover\:shadow-lg:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(74,144,217,0.2) !important;
+}
+
+/* ── Primary accent buttons neon glow ── */
+[data-theme="neon"] .bg-primary {
+  background: linear-gradient(135deg, #1e3a5f, #2a5298) !important;
+  box-shadow: 0 0 15px rgba(74,144,217,0.4), 0 0 30px rgba(74,144,217,0.2) !important;
+  border: 1px solid rgba(74,144,217,0.4) !important;
+}
+
+[data-theme="neon"] .bg-primary:hover,
+[data-theme="neon"] .hover\:bg-primary\/95:hover {
+  box-shadow: 0 0 25px rgba(74,144,217,0.6), 0 0 50px rgba(74,144,217,0.3) !important;
+}
+
+/* ── Accent (orange) buttons neon glow ── */
+[data-theme="neon"] .bg-\[\#E8A87C\],
+[data-theme="neon"] .bg-accent {
+  box-shadow: 0 0 15px rgba(232,168,124,0.4), 0 0 30px rgba(232,168,124,0.2) !important;
+}
+
+[data-theme="neon"] .hover\:bg-\[\#d8976b\]:hover {
+  box-shadow: 0 0 25px rgba(232,168,124,0.5), 0 0 50px rgba(232,168,124,0.25) !important;
+}
+
+/* ── Text neon glow on headings ── */
+[data-theme="neon"] .text-primary {
+  text-shadow: 0 0 20px rgba(74,144,217,0.15);
+}
+
+[data-theme="neon"] h1, [data-theme="neon"] h2, [data-theme="neon"] h3 {
+  text-shadow: 0 0 15px rgba(74,144,217,0.2);
+}
+
+/* ── Input focus neon glow ── */
+[data-theme="neon"] input:focus,
+[data-theme="neon"] select:focus,
+[data-theme="neon"] textarea:focus {
+  box-shadow: 0 0 0 2px rgba(74,144,217,0.4), 0 0 15px rgba(74,144,217,0.2) !important;
+  border-color: #4A90D9 !important;
+}
+
+/* ── Accent badge / pill glow ── */
+[data-theme="neon"] .bg-accent\/15,
+[data-theme="neon"] .bg-accent\/10 {
+  box-shadow: 0 0 8px rgba(232,168,124,0.2) !important;
+}
+
+/* ── Timeline dot glow ── */
+[data-theme="neon"] .bg-accent.rounded-full {
+  box-shadow: 0 0 8px rgba(232,168,124,0.6), 0 0 16px rgba(232,168,124,0.3) !important;
+}
+
+/* ── Notification dot pulse glow ── */
+[data-theme="neon"] .bg-\[var\(--accent-coral\)\],
+[data-theme="neon"] .animate-glow {
+  box-shadow: 0 0 10px var(--accent-coral), 0 0 20px rgba(255,107,107,0.4) !important;
+}
+
+/* ── Active indicator / left border ── */
+[data-theme="neon"] .border-primary,
+[data-theme="neon"] .border-l-4 {
+  box-shadow: -2px 0 10px rgba(74,144,217,0.4) !important;
+}
+
+/* ── Scrollbar neon glow ── */
+[data-theme="neon"] ::-webkit-scrollbar-thumb {
+  background: rgba(74,144,217,0.3) !important;
+  box-shadow: 0 0 6px rgba(74,144,217,0.4);
+}
+[data-theme="neon"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(74,144,217,0.5) !important;
+  box-shadow: 0 0 10px rgba(74,144,217,0.6);
+}
+
+/* ── Floating neon ambient orbs (background atmosphere) ── */
+[data-theme="neon"] #root::after {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,144,217,0.06) 0%, transparent 70%);
+  top: -200px;
+  right: -200px;
+  pointer-events: none;
+  z-index: 0;
+  animation: neonOrbFloat 8s ease-in-out infinite;
+}
+
+@keyframes neonOrbFloat {
+  0%,100% { transform: translate(0,0) scale(1); opacity: 0.6; }
+  33%      { transform: translate(-30px,20px) scale(1.1); opacity: 1; }
+  66%      { transform: translate(20px,-15px) scale(0.95); opacity: 0.7; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    ANIMATION KEYFRAMES
    ═══════════════════════════════════════════════════════════════════════════════ */
 
