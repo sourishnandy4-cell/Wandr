@@ -44,6 +44,10 @@ function App() {
   const [dbConnected, setDbConnected] = useState(true);
 
   const checkDbConnection = async () => {
+    if (USE_MOCK_MODE) {
+      setDbConnected(true);
+      return true;
+    }
     try {
       const url = supabase?.supabaseUrl || 'https://rggsvpjiwhdicgaukcaa.supabase.co';
       const res = await fetch(`${url}/auth/v1/health`);
