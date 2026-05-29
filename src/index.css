@@ -1342,3 +1342,46 @@ body {
   70%  { width: 75%; }
   100% { width: 100%; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CURSOR / TOUCH PLANE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Shared base */
+.cursor-plane {
+  position: fixed;
+  z-index: 99998;
+  font-size: 1.5rem;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: left, top, transform;
+  filter: drop-shadow(0 2px 6px var(--cursor-glow, rgba(212,115,110,0.5)));
+}
+
+.cursor-plane.visible {
+  opacity: 1;
+}
+
+/* Desktop — hide system cursor when our plane is visible */
+@media (hover: hover) and (pointer: fine) {
+  body:has(.cursor-plane.visible) {
+    cursor: none;
+  }
+}
+
+/* Mobile touch plane — slightly bigger, glowy ring on active */
+.cursor-plane.touch-plane {
+  font-size: 2rem;
+  filter:
+    drop-shadow(0 0 8px var(--cursor-glow, rgba(212,115,110,0.6)))
+    drop-shadow(0 0 18px var(--cursor-glow, rgba(212,115,110,0.3)));
+  transition: opacity 0.4s ease;
+}
+
+.cursor-plane.touch-plane.visible {
+  opacity: 0.92;
+}
