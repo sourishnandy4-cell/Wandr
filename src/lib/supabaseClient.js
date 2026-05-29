@@ -23,7 +23,19 @@ export const setRuntimeMockMode = () => {
   try { sessionStorage.removeItem('wandr_supabase_offline'); } catch {}
 };
 
-export const isMockMode = () => false;
+export const isMockMode = () => {
+  try {
+    const activeTripId = localStorage.getItem('wandr_active_trip_id');
+    if (activeTripId) {
+      // If the active trip ID is not a UUID, it must be a locally saved legacy/mock trip.
+      // We return true here so that all itinerary/expenses operations for this legacy trip 
+      // correctly route to the local storage mock database instead of failing in Supabase.
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeTripId);
+      if (!isUUID) return true;
+    }
+  } catch {}
+  return false;
+};
 
 if (staticMockMode) {
   console.info('[Wandr] No Supabase config — running in offline mock mode.');

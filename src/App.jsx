@@ -81,14 +81,6 @@ function App() {
     if (!currentUser) return;
     setTripsLoading(true);
     try {
-      if (isMockMode()) {
-        // Filter mock trips where current user is a member
-        const myTrips = MOCK_TRIPS.filter(trip => {
-          const membersEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === trip.id);
-          return membersEntry && membersEntry.members.includes(currentUser.name);
-        });
-        setExistingTrips(myTrips);
-      } else {
         // First get the trip IDs the user is a member of
         let tripIds = [];
         if (currentUser.id) {
@@ -149,7 +141,6 @@ function App() {
           });
           setExistingTrips([...data, ...localExtras]);
         }
-      }
     } catch (err) {
       console.error('Failed to load existing trips:', err);
       const isNet = err instanceof TypeError || err.message?.includes('fetch') || err.message?.includes('Network');
@@ -175,7 +166,8 @@ function App() {
     if (!confirmDelete) return;
 
     try {
-      if (isMockMode()) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId);
+      if (!isUUID || isMockMode()) {
         await mockDeleteTrip(tripId);
       } else {
         const { error } = await supabase
@@ -310,23 +302,13 @@ function App() {
   const fetchTripMeta = async () => {
     if (!activeTripId) return;
 
-    // Validate UUID format when not in mock mode to handle legacy mock IDs in localStorage
-    if (!isMockMode()) {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(activeTripId)) {
-        console.warn('Wandr: Detected invalid activeTripId UUID, clearing session:', activeTripId);
-        localStorage.removeItem('wandr_active_trip_id');
-        setActiveTripId(null);
-        setTripMeta(null);
-        setError('Invalid trip ID. Please select a trip from your saved trips.');
-        return;
-      }
-    }
+    const isUUID = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const isMockTrip = !isUUID(activeTripId);
 
     setLoading(true);
     setError(null);
     try {
-      if (isMockMode()) {
+      if (isMockMode() || isMockTrip) {
         const { data } = await mockFetchTripMeta(activeTripId);
         if (!data) {
           setError('Trip not found. It may have been deleted.');
