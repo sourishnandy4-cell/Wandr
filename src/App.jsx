@@ -41,28 +41,6 @@ function App() {
   });
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dbConnected, setDbConnected] = useState(true);
-
-  const checkDbConnection = async () => {
-    if (USE_MOCK_MODE) {
-      setDbConnected(true);
-      return true;
-    }
-    try {
-      const url = supabase?.supabaseUrl || 'https://rggsvpjiwhdicgaukcaa.supabase.co';
-      const res = await fetch(`${url}/auth/v1/health`);
-      const connected = res.ok || res.status === 401;
-      setDbConnected(connected);
-      return connected;
-    } catch {
-      setDbConnected(false);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    checkDbConnection();
-  }, []);
 
   // ── Stash any invite/join params from URL into localStorage immediately on
   //    first load, before the user has logged in. Processed after login below.
@@ -673,48 +651,6 @@ function App() {
       <>
         {showLoadingScreen && <LoadingScreen onFinished={() => setShowLoadingScreen(false)} />}
         <CursorPlane />
-        {!dbConnected && (
-          <div style={{
-            background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
-            color: '#fff',
-            padding: '10px 16px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-            zIndex: 100,
-            position: 'relative'
-          }}>
-            <svg style={{ width: '16px', height: '16px', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>
-              <strong>Cloud Sync Unreachable:</strong> Disabling your adblocker (e.g. Brave Shields, uBlock Origin) or checking your network connection/firewall is required to sign in and sync.
-            </span>
-            <button 
-              onClick={checkDbConnection}
-              style={{
-                background: 'rgba(255,255,255,0.25)',
-                border: 'none',
-                borderRadius: '4px',
-                color: '#fff',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                marginLeft: '12px',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-            >
-              Retry Connection
-            </button>
-          </div>
-        )}
         <Login onLoginSuccess={setCurrentUser} />
       </>
     );
@@ -724,48 +660,6 @@ function App() {
   if (!activeTripId) {
     return (
       <div className="min-h-screen flex flex-col font-sans" style={{ background: 'var(--bg-gradient)' }}>
-        {!dbConnected && (
-          <div style={{
-            background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
-            color: '#fff',
-            padding: '10px 16px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-            zIndex: 100,
-            position: 'relative'
-          }}>
-            <svg style={{ width: '16px', height: '16px', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>
-              <strong>Cloud Sync Unreachable:</strong> Disabling your adblocker (e.g. Brave Shields, uBlock Origin) or checking your network connection/firewall is required to sync.
-            </span>
-            <button 
-              onClick={checkDbConnection}
-              style={{
-                background: 'rgba(255,255,255,0.25)',
-                border: 'none',
-                borderRadius: '4px',
-                color: '#fff',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                marginLeft: '12px',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-            >
-              Retry Connection
-            </button>
-          </div>
-        )}
         <div className="flex-1 flex items-center justify-center p-4 md:p-6">
           <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-5 gap-6 rounded-3xl shadow-xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300 relative overflow-hidden glass-card" style={{ borderRadius: 'var(--radius-lg)' }}>
           
@@ -1029,47 +923,6 @@ function App() {
 
       {/* Main Content Area */}
       <div className="md:ml-64 min-h-screen relative">
-        {!dbConnected && (
-          <div style={{
-            background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
-            color: '#fff',
-            padding: '10px 16px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-            zIndex: 100,
-            position: 'relative'
-          }}>
-            <svg style={{ width: '16px', height: '16px', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>
-              <strong>Cloud Sync Unreachable:</strong> Disabling your adblocker (e.g. Brave Shields, uBlock Origin) or checking your network connection/firewall is required to sync trips with other devices.
-            </span>
-            <button 
-              onClick={checkDbConnection}
-              style={{
-                background: 'rgba(255,255,255,0.25)',
-                border: 'none',
-                borderRadius: '4px',
-                color: '#fff',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                marginLeft: '12px',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-            >
-              Retry Connection
-            </button>
-          </div>
         )}
 
         {/* ── Destination background image via Wikipedia API (CSP-safe) ── */}
