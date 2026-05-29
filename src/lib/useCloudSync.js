@@ -14,7 +14,6 @@ export function useCloudSync({
   activeTripId,
   setActiveTripId,
   setLoading,
-  setDbConnected,
   handleRefresh,
   fetchExistingTrips
 }) {
@@ -158,9 +157,6 @@ export function useCloudSync({
       handleRefresh();
     } catch (err) {
       console.error('Failed to sync trip:', err);
-      if (isNetworkError(err)) {
-        setDbConnected(false);
-      }
       alert(getFriendlyErrorMessage(err, 'Failed to sync trip to cloud.'));
     } finally {
       setLoading(false);
@@ -202,10 +198,6 @@ export function useCloudSync({
 
         if (tripErr) {
           console.error("Auto-migration: Failed to sync trip meta:", trip.name, tripErr.message);
-          if (isNetworkError(tripErr)) {
-            setDbConnected(false);
-            break;
-          }
           continue;
         }
 
@@ -237,10 +229,6 @@ export function useCloudSync({
 
           if (itinErr) {
             console.error("Auto-migration: Failed to migrate itinerary:", itinErr.message);
-            if (isNetworkError(itinErr)) {
-              setDbConnected(false);
-              break;
-            }
           }
         }
 
@@ -261,10 +249,6 @@ export function useCloudSync({
 
             if (expErr) {
               console.error("Auto-migration: Failed to migrate expense:", exp.description, expErr.message);
-              if (isNetworkError(expErr)) {
-                setDbConnected(false);
-                break;
-              }
               continue;
             }
 
@@ -280,10 +264,6 @@ export function useCloudSync({
 
             if (splitErr) {
               console.error("Auto-migration: Failed to insert split:", splitErr.message);
-              if (isNetworkError(splitErr)) {
-                setDbConnected(false);
-                break;
-              }
             }
           }
         }
@@ -328,9 +308,6 @@ export function useCloudSync({
       await fetchExistingTrips();
     } catch (err) {
       console.error("[Wandr] Auto-migration error:", err);
-      if (isNetworkError(err)) {
-        setDbConnected(false);
-      }
     }
   };
 

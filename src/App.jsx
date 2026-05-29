@@ -439,7 +439,6 @@ function App() {
     activeTripId,
     setActiveTripId,
     setLoading,
-    setDbConnected,
     handleRefresh,
     fetchExistingTrips
   });
