@@ -2,7 +2,7 @@
 
 > Plan, collaborate, and settle travel expenses beautifully.
 
-**Live demo →** [sourishnandy4-cell.github.io/trip-planner](https://sourishnandy4-cell.github.io/trip-planner/)
+**Live Webapp →** [sourishnandy4-cell.github.io/trip-planner](https://sourishnandy4-cell.github.io/trip-planner/)
 
 ---
 
