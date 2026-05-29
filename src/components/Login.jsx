@@ -52,13 +52,11 @@ export const Login = ({ onLoginSuccess }) => {
       if (isMockMode()) {
         let result;
         if (isSignUp) {
-          result = await signUp({ email, password, username: name });
+          result = await signUp({ email, password, username: name, region, currencySymbol, currencyCode });
         } else {
           result = await login({ email, password });
         }
         sessionStorage.setItem('wandr_session_token', result.sessionToken);
-        let storedMockUser = null;
-        try { storedMockUser = JSON.parse(localStorage.getItem('wandr_mock_users') || '{}')[email]; } catch(e){}
         
         const mockUserSession = {
           id: result.user.id,
@@ -67,9 +65,11 @@ export const Login = ({ onLoginSuccess }) => {
           initials: (result.user.username || name || email.split('@')[0])
             .split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3),
           role: 'Trip Member',
-          region, currencySymbol, currencyCode,
-          avatar: storedMockUser?.avatar || null,
-          avatarColorClass: storedMockUser?.avatarColorClass || null,
+          region: result.user.region || region,
+          currencySymbol: result.user.currencySymbol || currencySymbol,
+          currencyCode: result.user.currencyCode || currencyCode,
+          avatar: result.user.avatar || null,
+          avatarColorClass: result.user.avatarColorClass || null,
         };
         localStorage.setItem('wandr_user', JSON.stringify(mockUserSession));
         onLoginSuccess(mockUserSession);

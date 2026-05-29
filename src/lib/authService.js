@@ -1,7 +1,7 @@
 // Authentication Service
 // Handles user signup, login, logout
 
-import { supabase, USE_MOCK_MODE } from './supabaseClient';
+import { supabase, isMockMode } from './supabaseClient';
 
 // ── Secure password hashing (Web Crypto API — zero dependencies) ──────────────
 const hashPassword = async (password, salt) => {
@@ -58,11 +58,11 @@ export const validateMockSession = (token) => {
 
 /**
  * Sign up a new user
- * @param {Object} userData - { email, password, username }
+ * @param {Object} userData - { email, password, username, region, currencySymbol, currencyCode }
  * @returns {Promise<Object>} User data
  */
-export async function signUp({ email, password, username }) {
-  if (USE_MOCK_MODE) {
+export async function signUp({ email, password, username, region, currencySymbol, currencyCode }) {
+  if (isMockMode()) {
     const users = getMockUsers();
     if (users[email]) {
       throw new Error('An account with this email already exists. Please sign in.');
@@ -79,6 +79,11 @@ export async function signUp({ email, password, username }) {
       passwordHash,
       salt,
       created_at: new Date().toISOString(),
+      region: region || 'IN',
+      currencySymbol: currencySymbol || '₹',
+      currencyCode: currencyCode || 'INR',
+      avatar: null,
+      avatarColorClass: 'bg-gradient-to-tr from-[#654ea3] to-[#eaafc8]',
     };
 
     users[email] = mockUser;
@@ -92,7 +97,17 @@ export async function signUp({ email, password, username }) {
     localStorage.setItem('username', username);
     // Return safe user (no hash/salt)
     return {
-      user: { id: mockUser.id, email, username, created_at: mockUser.created_at },
+      user: { 
+        id: mockUser.id, 
+        email, 
+        username, 
+        created_at: mockUser.created_at,
+        region: mockUser.region,
+        currencySymbol: mockUser.currencySymbol,
+        currencyCode: mockUser.currencyCode,
+        avatar: mockUser.avatar,
+        avatarColorClass: mockUser.avatarColorClass
+      },
       sessionToken,
       error: null,
     };
@@ -130,7 +145,7 @@ export async function signUp({ email, password, username }) {
  * @returns {Promise<Object>} User data
  */
 export async function login({ email, password }) {
-  if (USE_MOCK_MODE) {
+  if (isMockMode()) {
     const users = getMockUsers();
     const storedUser = users[email];
 
@@ -144,6 +159,23 @@ export async function login({ email, password }) {
       throw new Error('Incorrect password. Please try again.');
     }
 
+    // Self-healing: Ensure a stable ID is present for legacy users
+    let usersUpdated = false;
+    if (!storedUser.id) {
+      storedUser.id = `user-${Date.now()}`;
+      usersUpdated = true;
+    }
+    if (!storedUser.region) {
+      storedUser.region = 'IN';
+      storedUser.currencySymbol = '₹';
+      storedUser.currencyCode = 'INR';
+      usersUpdated = true;
+    }
+    if (usersUpdated) {
+      users[email] = storedUser;
+      saveMockUsers(users);
+    }
+
     const sessionToken = generateSessionToken();
     const sessions = getSessions();
     sessions[sessionToken] = email;
@@ -151,7 +183,17 @@ export async function login({ email, password }) {
 
     localStorage.setItem('username', storedUser.username);
     return {
-      user: { id: storedUser.id, email, username: storedUser.username, created_at: storedUser.created_at },
+      user: { 
+        id: storedUser.id, 
+        email, 
+        username: storedUser.username, 
+        created_at: storedUser.created_at,
+        region: storedUser.region || 'IN',
+        currencySymbol: storedUser.currencySymbol || '₹',
+        currencyCode: storedUser.currencyCode || 'INR',
+        avatar: storedUser.avatar || null,
+        avatarColorClass: storedUser.avatarColorClass || 'bg-gradient-to-tr from-[#654ea3] to-[#eaafc8]'
+      },
       sessionToken,
       error: null,
     };
@@ -179,7 +221,7 @@ export async function login({ email, password }) {
  * @returns {Promise<void>}
  */
 export async function logout(sessionToken) {
-  if (USE_MOCK_MODE) {
+  if (isMockMode()) {
     if (sessionToken) {
       const sessions = getSessions();
       delete sessions[sessionToken];
@@ -201,14 +243,24 @@ export async function logout(sessionToken) {
  * @returns {Promise<Object>} User session
  */
 export async function getCurrentUser() {
-  if (USE_MOCK_MODE) {
+  if (isMockMode()) {
     // Session-token based validation — NOT just checking any mockUser in localStorage
     const sessionToken = sessionStorage.getItem('wandr_session_token');
     if (!sessionToken) return { user: null, error: null };
     const user = validateMockSession(sessionToken);
     if (user) {
       return {
-        user: { id: user.id, email: user.email, username: user.username, created_at: user.created_at },
+        user: { 
+          id: user.id || `user-${Date.now()}`, 
+          email: user.email, 
+          username: user.username, 
+          created_at: user.created_at,
+          region: user.region || 'IN',
+          currencySymbol: user.currencySymbol || '₹',
+          currencyCode: user.currencyCode || 'INR',
+          avatar: user.avatar || null,
+          avatarColorClass: user.avatarColorClass || 'bg-gradient-to-tr from-[#654ea3] to-[#eaafc8]'
+        },
         error: null,
       };
     }
@@ -236,7 +288,7 @@ export async function getCurrentUser() {
  * @returns {Promise<Array>} Array of users
  */
 export async function searchUsers(searchTerm) {
-  if (USE_MOCK_MODE) {
+  if (isMockMode()) {
     return [];
   }
 
