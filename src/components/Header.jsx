@@ -3,7 +3,7 @@ import { Search, Bell, ChevronDown, BellOff, Menu, Loader2, MapPin, DollarSign, 
 import { fetchItinerary } from '../lib/itineraryService';
 import { fetchRecentExpenses } from '../lib/expenseService';
 
-export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTrip, onProfileClick, onMenuClick, onNavigate }) => {
+export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTrip, onProfileClick, onMenuClick, onNavigate, onSyncToCloud }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -118,18 +118,54 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
           </button>
           
           <div style={{ minWidth: 0 }}>
-            <h1 className="trip-name" style={{
-              fontSize: 'clamp(1.1rem, 2vw, 1.5rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.5px',
-              color: 'var(--text-primary)',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              {tripName}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 className="trip-name" style={{
+                fontSize: 'clamp(1.1rem, 2vw, 1.5rem)',
+                fontWeight: 800,
+                letterSpacing: '-0.5px',
+                color: 'var(--text-primary)',
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {tripName}
+              </h1>
+              {tripId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId) && user && onSyncToCloud && (
+                <button
+                  onClick={onSyncToCloud}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-teal))',
+                    color: '#fff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    borderRadius: '20px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                  }}
+                  title="Upload this local trip to the cloud database to sync with your phone"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '14px', height: '14px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Sync to Cloud
+                </button>
+              )}
+            </div>
             <span style={{
               display: 'inline-block',
               marginTop: '4px',
