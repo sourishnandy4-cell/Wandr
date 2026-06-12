@@ -56,44 +56,90 @@ export const Login = ({ onLoginSuccess }) => {
       const { currencySymbol, currencyCode } = getRegionDetails(region);
       
       if (isGuestMode) {
-        setRuntimeMockMode(); // Force local mock data mode for guests
-        const guestUser = {
-          id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          email: `${name.toLowerCase().trim().replace(/\s+/g, '') || 'guest'}@wandr.guest`,
-          name: name.trim(),
-          initials: name.trim().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3) || 'GST',
-          role: 'Guest Planner',
-          region,
-          currencySymbol,
-          currencyCode,
-          avatar: null,
-          avatarColorClass: 'bg-gradient-to-tr from-[#bdc3c7] to-[#2c3e50]',
-        };
-        
-        localStorage.setItem('wandr_user', JSON.stringify(guestUser));
-        sessionStorage.setItem('wandr_session_token', `guest-token-${Date.now()}`);
-        
-        try {
-          const raw = localStorage.getItem('wandr_mock_users');
-          const mockUsers = raw ? JSON.parse(raw) : {};
-          mockUsers[guestUser.email] = {
-            id: guestUser.id,
-            email: guestUser.email,
-            username: guestUser.name,
-            created_at: new Date().toISOString(),
+        let guestUser = null;
+        let isAnonSuccess = false;
+
+        if (supabase) {
+          try {
+            const { data: authData, error: authErr } = await supabase.auth.signInAnonymously();
+            if (authErr) throw authErr;
+
+            guestUser = {
+              id: authData.user.id,
+              email: authData.user.email || `${name.toLowerCase().trim().replace(/\s+/g, '') || 'guest'}@wandr.guest`,
+              name: name.trim(),
+              initials: name.trim().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3) || 'GST',
+              role: 'Guest Planner',
+              region,
+              currencySymbol,
+              currencyCode,
+              avatar: null,
+              avatarColorClass: 'bg-gradient-to-tr from-[#bdc3c7] to-[#2c3e50]',
+            };
+
+            // Write guest user profile to the users table
+            const { error: profileErr } = await supabase
+              .from('users')
+              .upsert({
+                id: guestUser.id,
+                email: guestUser.email,
+                name: guestUser.name,
+              });
+
+            if (profileErr) throw profileErr;
+
+            localStorage.setItem('wandr_user', JSON.stringify(guestUser));
+            if (authData.session?.access_token) {
+              sessionStorage.setItem('wandr_session_token', authData.session.access_token);
+            } else {
+              sessionStorage.setItem('wandr_session_token', `guest-token-${Date.now()}`);
+            }
+            isAnonSuccess = true;
+          } catch (anonErr) {
+            console.warn('Supabase anonymous sign-in failed, falling back to local mock mode:', anonErr);
+          }
+        }
+
+        if (!isAnonSuccess) {
+          setRuntimeMockMode(); // Force local mock data mode for guests
+          guestUser = {
+            id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            email: `${name.toLowerCase().trim().replace(/\s+/g, '') || 'guest'}@wandr.guest`,
+            name: name.trim(),
+            initials: name.trim().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3) || 'GST',
+            role: 'Guest Planner',
             region,
             currencySymbol,
             currencyCode,
             avatar: null,
-            avatarColorClass: guestUser.avatarColorClass
+            avatarColorClass: 'bg-gradient-to-tr from-[#bdc3c7] to-[#2c3e50]',
           };
-          localStorage.setItem('wandr_mock_users', JSON.stringify(mockUsers));
           
-          const sessionsRaw = localStorage.getItem('wandr_sessions');
-          const sessions = sessionsRaw ? JSON.parse(sessionsRaw) : {};
-          sessions[sessionStorage.getItem('wandr_session_token')] = guestUser.email;
-          localStorage.setItem('wandr_sessions', JSON.stringify(sessions));
-        } catch (_) {}
+          localStorage.setItem('wandr_user', JSON.stringify(guestUser));
+          sessionStorage.setItem('wandr_session_token', `guest-token-${Date.now()}`);
+          
+          try {
+            const raw = localStorage.getItem('wandr_mock_users');
+            const mockUsers = raw ? JSON.parse(raw) : {};
+            mockUsers[guestUser.email] = {
+              id: guestUser.id,
+              email: guestUser.email,
+              username: guestUser.name,
+              created_at: new Date().toISOString(),
+              region,
+              currencySymbol,
+              currencyCode,
+              avatar: null,
+              avatarColorClass: guestUser.avatarColorClass
+            };
+            localStorage.setItem('wandr_mock_users', JSON.stringify(mockUsers));
+            
+            const sessionsRaw = localStorage.getItem('wandr_sessions');
+            const sessions = sessionsRaw ? JSON.parse(sessionsRaw) : {};
+            sessions[sessionStorage.getItem('wandr_session_token')] = guestUser.email;
+            localStorage.setItem('wandr_sessions', JSON.stringify(sessions));
+          } catch (_) {}
+        }
 
         onLoginSuccess(guestUser);
       } else if (isMockMode(true)) {

@@ -40,6 +40,21 @@ export const TripMembers = ({ tripId, tripName, currentUser, tripData = null }) 
           role: tm.role || 'member'
         })) || [];
 
+        // Merge in local mock members (e.g. guests or offline joined users) so they are visible
+        const localEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === tripId);
+        if (localEntry && Array.isArray(localEntry.members)) {
+          localEntry.members.forEach(localName => {
+            if (!membersList.some(m => m.name.toLowerCase() === localName.toLowerCase())) {
+              membersList.push({
+                id: `local-${localName}`,
+                name: localName,
+                email: '',
+                role: 'member'
+              });
+            }
+          });
+        }
+
         setMembers(membersList);
       }
     } catch (err) {

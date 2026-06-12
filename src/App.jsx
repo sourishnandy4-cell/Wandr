@@ -274,6 +274,21 @@ function App() {
             });
           }
 
+          // If in Supabase mode and the trip ID is a UUID, register their membership in Supabase
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trip.id);
+          if (!isMockMode() && isUUID && currentUser && currentUser.id && !currentUser.id.startsWith('guest-')) {
+            try {
+              const { error: joinErr } = await supabase
+                .from('trip_members')
+                .insert([{ trip_id: trip.id, user_id: currentUser.id, role: 'member' }]);
+              if (joinErr && joinErr.code !== '23505') {
+                console.error('Failed to register membership in Supabase:', joinErr);
+              }
+            } catch (err) {
+              console.error('Error joining trip in Supabase:', err);
+            }
+          }
+
           saveMockData();
           clearPending();
 

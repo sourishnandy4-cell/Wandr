@@ -9,6 +9,7 @@ import {
   mockDeleteExpense,
   mockClearExpenses,
   MOCK_TRIPS,
+  MOCK_TRIP_MEMBERS,
   saveMockData,
 } from './mockDatabase';
 
@@ -122,6 +123,19 @@ export const fetchTripMembers = async (tripId) => {
     id: row.user_id,
     name: row.users?.name || (user && row.user_id === user.id ? user.name : `User-${row.user_id.substring(0, 4)}`)
   }));
+
+  // Merge in local mock members (e.g. guests or offline joined users) so they resolve in expenses
+  const localEntry = MOCK_TRIP_MEMBERS.find(m => m.trip_id === tripId);
+  if (localEntry && Array.isArray(localEntry.members)) {
+    localEntry.members.forEach(localName => {
+      if (!members.some(m => m.name.toLowerCase() === localName.toLowerCase())) {
+        members.push({
+          id: `local-${localName}`,
+          name: localName
+        });
+      }
+    });
+  }
   
   return { data: members, error: null };
 };
