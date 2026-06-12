@@ -31,9 +31,32 @@ const loadLeafletStack = async () => {
 };
 
 /* ─────────────────────────────────────────────────────────────────────────
-   GEOCODING (Nominatim)
+   GEOCODING (Nominatim with local caching and rate-limiting)
 ───────────────────────────────────────────────────────────────────────── */
+const getGeocodeCacheKey = (query) => `wandr_geocode_cache_${query.toLowerCase().trim()}`;
+
 const geocode = async (query) => {
+  if (!query?.trim()) return null;
+  const key = getGeocodeCacheKey(query);
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
+  // Enforce 1-second delay between sequential Nominatim requests
+  const lastFetchTime = window.__lastGeocodeFetchTime || 0;
+  const now = Date.now();
+  const timeSinceLast = now - lastFetchTime;
+  if (timeSinceLast < 1000) {
+    await new Promise(resolve => setTimeout(resolve, 1000 - timeSinceLast));
+  }
+  window.__lastGeocodeFetchTime = Date.now();
+
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
@@ -158,13 +181,38 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
       try {
         await loadLeafletStack();
         if (navigator.geolocation) {
+          // Dual-pass Geolocation check for mobile robustness
+          // Pass 1: Try high accuracy first (GPS) with a 5 second timeout
           navigator.geolocation.getCurrentPosition(
-            pos => { setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStartStr('My Current Location'); setSimMode(false); setLoading(false); },
-            () => fallbackLocation(),
-            { enableHighAccuracy: true, timeout: 8000 }
+            pos => {
+              setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              setStartStr('My Current Location');
+              setSimMode(false);
+              setLoading(false);
+            },
+            (err) => {
+              console.warn('[Wandr] High accuracy geolocation failed, trying standard accuracy...', err);
+              // Pass 2: Fallback to low accuracy (WiFi/cellular) with a 6 second timeout
+              navigator.geolocation.getCurrentPosition(
+                pos2 => {
+                  setUserCoords({ lat: pos2.coords.latitude, lng: pos2.coords.longitude });
+                  setStartStr('My Current Location');
+                  setSimMode(false);
+                  setLoading(false);
+                },
+                () => fallbackLocation(),
+                { enableHighAccuracy: false, timeout: 6000 }
+              );
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
           );
-        } else fallbackLocation();
-      } catch { setLoading(false); }
+        } else {
+          fallbackLocation();
+        }
+      } catch (err) {
+        console.error('[Wandr] Geolocation init error:', err);
+        fallbackLocation();
+      }
     };
     init();
     return () => {
@@ -172,13 +220,22 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
       clearTimer();
       if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; }
     };
-  }, []);
+  }, [tripDestination]);
 
   const fallbackLocation = async () => {
     setSimMode(true);
-    // Point towards Paris by default (independent of trip name, as requested)
-    let c = { lat: 48.8566, lng: 2.3522 }, label = 'Paris, France';
-    setUserCoords(c); setStartStr(label); setLoading(false);
+    let c = { lat: 48.8566, lng: 2.3522 }; // default Paris
+    let label = 'Paris, France';
+    if (tripDestination) {
+      const g = await geocode(tripDestination);
+      if (g) {
+        c = { lat: g.lat, lng: g.lng };
+        label = g.label || tripDestination;
+      }
+    }
+    setUserCoords(c);
+    setStartStr(label);
+    setLoading(false);
   };
 
   /* ─── LIVE GPS WATCH ─── */
@@ -193,7 +250,19 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
         setUserCoords(c);
         updateMarkerPos(c);
       },
-      () => {},
+      (err) => {
+        console.warn('[Wandr] Live GPS watch failed, switching to normal accuracy watch...', err);
+        if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = navigator.geolocation.watchPosition(
+          pos2 => {
+            const c2 = { lat: pos2.coords.latitude, lng: pos2.coords.longitude };
+            setUserCoords(c2);
+            updateMarkerPos(c2);
+          },
+          () => {},
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 5000 }
+        );
+      },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
     return () => { if (watchId.current) navigator.geolocation.clearWatch(watchId.current); };

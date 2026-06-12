@@ -17,16 +17,50 @@ const loadLeaflet = () => new Promise((resolve, reject) => {
   document.head.appendChild(script);
 });
 
-// Geocode a location string using Nominatim (free OSM geocoding)
+// Geocode a location string using Nominatim (free OSM geocoding with local caching and rate-limiting)
+const getGeocodeCacheKey = (query) => `wandr_geocode_cache_${query.toLowerCase().trim()}`;
+
 const geocodeLocation = async (locationStr, destination = '') => {
   const query = destination ? `${locationStr}, ${destination}` : locationStr;
+  if (!query?.trim()) return null;
+  const key = getGeocodeCacheKey(query);
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
+  // Enforce 1-second delay between sequential Nominatim requests
+  const lastFetchTime = window.__lastGeocodeFetchTime || 0;
+  const now = Date.now();
+  const timeSinceLast = now - lastFetchTime;
+  if (timeSinceLast < 1000) {
+    await new Promise(resolve => setTimeout(resolve, 1000 - timeSinceLast));
+  }
+  window.__lastGeocodeFetchTime = Date.now();
+
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
       { headers: { 'Accept-Language': 'en', 'User-Agent': 'WandrTravelApp/1.0' } }
     );
+    if (res.status === 429) {
+      console.warn('[Wandr] Nominatim rate-limit hit in MapView. Retrying in 2 seconds...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return geocodeLocation(locationStr, destination);
+    }
     const data = await res.json();
-    if (data?.[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    if (data?.[0]) {
+      const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      try {
+        localStorage.setItem(key, JSON.stringify(coords));
+      } catch (_) {}
+      return coords;
+    }
   } catch (e) { /* silent */ }
   return null;
 };

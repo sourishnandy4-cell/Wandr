@@ -131,7 +131,7 @@ export const Header = ({ tripId, tripName, dateRange, user, onLogout, onSwitchTr
               <span className="inline-block px-2.5 py-1 bg-[var(--accent-glow)] text-[var(--accent)] text-xs font-semibold rounded-full whitespace-nowrap font-sans">
                 {dateRange}
               </span>
-              {isMockMode() ? (
+              {isMockMode(true) ? (
                 <button
                   type="button"
                   onClick={() => {
