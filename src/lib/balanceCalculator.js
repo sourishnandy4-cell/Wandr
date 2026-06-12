@@ -27,6 +27,26 @@ export const calculateNetBalances = async (tripId) => {
     return mockCalculateNetBalances(tripId);
   }
 
+  // Step 0: fetch members to build display name mapping
+  const { data: memberData } = await supabase
+    .from('trip_members')
+    .select(`
+      user_id,
+      users (
+        name
+      )
+    `)
+    .eq('trip_id', tripId);
+
+  const displayNames = buildDisplayNameMap();
+  if (memberData) {
+    memberData.forEach(row => {
+      if (row.user_id && row.users?.name) {
+        displayNames[row.user_id] = row.users.name;
+      }
+    });
+  }
+
   // Step 1: fetch expenses with payer info
   const { data: expenses, error: expErr } = await supabase
     .from('expenses')
@@ -81,11 +101,10 @@ export const calculateNetBalances = async (tripId) => {
   }
 
   // Step 5: format for UI — replace UUIDs with display names
-  const displayNames = buildDisplayNameMap();
   const balances = Object.entries(netMap).map(([key, amount]) => {
     const [fromId, toId] = key.split('→');
-    const from = displayNames[fromId] || fromId.substring(0, 8);
-    const to = displayNames[toId] || toId.substring(0, 8);
+    const from = displayNames[fromId] || `User-${fromId.substring(0, 4)}`;
+    const to = displayNames[toId] || `User-${toId.substring(0, 4)}`;
     return { from, to, amount: parseFloat(amount.toFixed(2)) };
   });
 

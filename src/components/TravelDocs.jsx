@@ -883,7 +883,12 @@ export const TravelDocs = ({ tripId, currentUser, tripDestination }) => {
 
   // ── Load from localStorage ───────────────────────────────────────────────────
   useEffect(() => {
-    if (!tripId) return;
+    if (!tripId) {
+      setNotes([]);
+      setPackingItems([]);
+      setSavedDocs([]);
+      return;
+    }
 
     const savedNotes = localStorage.getItem(`wandr_notes_${tripId}`);
     if (savedNotes) {

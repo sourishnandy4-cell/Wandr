@@ -170,6 +170,20 @@ function App() {
     }
   };
 
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const { handleSyncTripToCloud, autoMigrateLocalTrips } = useCloudSync({
+    currentUser,
+    tripMeta,
+    activeTripId,
+    setActiveTripId,
+    setLoading,
+    handleRefresh,
+    fetchExistingTrips
+  });
+
   const handleDeleteTrip = async (e, tripId) => {
     e.stopPropagation();
     const confirmDelete = window.confirm("Are you sure you want to delete this trip and all its itinerary/expenses? This cannot be undone.");
@@ -400,9 +414,6 @@ function App() {
     }
   }, [refreshTrigger, currentUser, activeTripId]);
 
-  const handleRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
 
   // ── Fetch destination background image from Wikipedia (CSP-safe) ──────────
   useEffect(() => {
@@ -452,15 +463,6 @@ function App() {
     setTripMeta(null);
   };
 
-  const { handleSyncTripToCloud, autoMigrateLocalTrips } = useCloudSync({
-    currentUser,
-    tripMeta,
-    activeTripId,
-    setActiveTripId,
-    setLoading,
-    handleRefresh,
-    fetchExistingTrips
-  });
 
 
   const handleUpdateUser = async (updatedUser) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Lock, User, ArrowRight, AlertCircle, Globe, UserCheck, Eye, EyeOff } from 'lucide-react';
-import { supabase, isMockMode, getFriendlyErrorMessage } from '../lib/supabaseClient';
+import { supabase, isMockMode, setRuntimeMockMode, getFriendlyErrorMessage } from '../lib/supabaseClient';
 import { login, signUp } from '../lib/authService';
 
 const getRegionDetails = (regionCode) => {
@@ -16,6 +16,7 @@ const getRegionDetails = (regionCode) => {
 
 export const Login = ({ onLoginSuccess }) => {
   const [isSignUp, setIsSignUp]           = useState(false);
+  const [isGuestMode, setIsGuestMode]     = useState(false);
   const [email, setEmail]                 = useState('');
   const [password, setPassword]           = useState('');
   const [name, setName]                   = useState('');
@@ -32,6 +33,10 @@ export const Login = ({ onLoginSuccess }) => {
   );
 
   const validateForm = () => {
+    if (isGuestMode) {
+      if (!name.trim()) { setError('Please enter your guest name.'); return false; }
+      return true;
+    }
     if (!email || !password) { setError('Please fill in all required fields.'); return false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Please enter a valid email address.'); return false; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return false; }
@@ -49,7 +54,49 @@ export const Login = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       const { currencySymbol, currencyCode } = getRegionDetails(region);
-      if (isMockMode(true)) {
+      
+      if (isGuestMode) {
+        setRuntimeMockMode(); // Force local mock data mode for guests
+        const guestUser = {
+          id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          email: `${name.toLowerCase().trim().replace(/\s+/g, '') || 'guest'}@wandr.guest`,
+          name: name.trim(),
+          initials: name.trim().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 3) || 'GST',
+          role: 'Guest Planner',
+          region,
+          currencySymbol,
+          currencyCode,
+          avatar: null,
+          avatarColorClass: 'bg-gradient-to-tr from-[#bdc3c7] to-[#2c3e50]',
+        };
+        
+        localStorage.setItem('wandr_user', JSON.stringify(guestUser));
+        sessionStorage.setItem('wandr_session_token', `guest-token-${Date.now()}`);
+        
+        try {
+          const raw = localStorage.getItem('wandr_mock_users');
+          const mockUsers = raw ? JSON.parse(raw) : {};
+          mockUsers[guestUser.email] = {
+            id: guestUser.id,
+            email: guestUser.email,
+            username: guestUser.name,
+            created_at: new Date().toISOString(),
+            region,
+            currencySymbol,
+            currencyCode,
+            avatar: null,
+            avatarColorClass: guestUser.avatarColorClass
+          };
+          localStorage.setItem('wandr_mock_users', JSON.stringify(mockUsers));
+          
+          const sessionsRaw = localStorage.getItem('wandr_sessions');
+          const sessions = sessionsRaw ? JSON.parse(sessionsRaw) : {};
+          sessions[sessionStorage.getItem('wandr_session_token')] = guestUser.email;
+          localStorage.setItem('wandr_sessions', JSON.stringify(sessions));
+        } catch (_) {}
+
+        onLoginSuccess(guestUser);
+      } else if (isMockMode(true)) {
         let result;
         if (isSignUp) {
           result = await signUp({ email, password, username: name, region, currencySymbol, currencyCode });
@@ -268,15 +315,20 @@ export const Login = ({ onLoginSuccess }) => {
 
         {/* Tab toggle */}
         <div className="flex rounded-2xl p-1 gap-1" style={{background:'rgba(0,0,0,0.25)', border:'1px solid rgba(255,255,255,0.1)'}}>
-          {['Sign In','Create Account'].map((label, i) => (
-            <button key={label} onClick={() => { setIsSignUp(i===1); setError(null); }}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-300"
-              style={(!isSignUp && i===0) || (isSignUp && i===1)
-                ? { background:'rgba(255,255,255,0.2)', color:'#fff', boxShadow:'0 2px 12px rgba(0,0,0,0.2)' }
-                : { color:'rgba(255,255,255,0.5)' }}>
-              {label}
-            </button>
-          ))}
+          {['Sign In','Create Account', 'Guest Access'].map((label, i) => {
+            const active = (i === 0 && !isSignUp && !isGuestMode) ||
+                           (i === 1 && isSignUp && !isGuestMode) ||
+                           (i === 2 && isGuestMode);
+            return (
+              <button key={label} type="button" onClick={() => { setIsSignUp(i===1); setIsGuestMode(i===2); setError(null); }}
+                className="flex-1 py-2.5 rounded-xl text-[10.5px] font-extrabold transition-all duration-300 whitespace-nowrap"
+                style={active
+                  ? { background:'rgba(255,255,255,0.2)', color:'#fff', boxShadow:'0 2px 12px rgba(0,0,0,0.2)' }
+                  : { color:'rgba(255,255,255,0.5)' }}>
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Error */}
@@ -305,44 +357,50 @@ export const Login = ({ onLoginSuccess }) => {
         {/* Form */}
         <form onSubmit={handleAuthSubmit} className="space-y-4">
 
-          {isSignUp && (
+          {(isSignUp || isGuestMode) && (
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Full Name</label>
+              <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                {isGuestMode ? 'Guest Name' : 'Full Name'}
+              </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input type="text" required value={name} onChange={e=>setName(e.target.value)}
-                  placeholder="e.g. Sarah J."
+                  placeholder={isGuestMode ? "e.g. Sarah J. (Guest)" : "e.g. Sarah J."}
                   className="w-full text-sm pl-10 pr-4 py-3 rounded-xl outline-none placeholder-white/30 transition-all focus:border-white/50 bg-white/10 border border-white/25 text-white backdrop-blur-md"
                 />
               </div>
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full text-sm pl-10 pr-4 py-3 rounded-xl outline-none placeholder-white/30 transition-all focus:border-white/50 bg-white/10 border border-white/25 text-white backdrop-blur-md"
-              />
-            </div>
-          </div>
+          {!isGuestMode && (
+            <>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <input type="email" required={!isGuestMode} value={email} onChange={e=>setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full text-sm pl-10 pr-4 py-3 rounded-xl outline-none placeholder-white/30 transition-all focus:border-white/50 bg-white/10 border border-white/25 text-white backdrop-blur-md"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input type={showPassword?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)}
-                placeholder="••••••"
-                className="w-full text-sm pl-10 pr-10 py-3 rounded-xl outline-none placeholder-white/30 transition-all focus:border-white/50 bg-white/10 border border-white/25 text-white backdrop-blur-md"
-              />
-              <button type="button" onClick={()=>setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">
-                {showPassword ? <EyeOff className="w-4 h-4"/> : <Eye className="w-4 h-4"/>}
-              </button>
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <input type={showPassword?'text':'password'} required={!isGuestMode} value={password} onChange={e=>setPassword(e.target.value)}
+                    placeholder="••••••"
+                    className="w-full text-sm pl-10 pr-10 py-3 rounded-xl outline-none placeholder-white/30 transition-all focus:border-white/50 bg-white/10 border border-white/25 text-white backdrop-blur-md"
+                  />
+                  <button type="button" onClick={()=>setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">
+                    {showPassword ? <EyeOff className="w-4 h-4"/> : <Eye className="w-4 h-4"/>}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {isSignUp && (
             <>
@@ -360,23 +418,25 @@ export const Login = ({ onLoginSuccess }) => {
                   </button>
                 </div>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Region / Currency</label>
-                <div className="relative">
-                  <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 z-10 pointer-events-none" />
-                  <select value={region} onChange={e=>setRegion(e.target.value)}
-                    className="w-full text-sm pl-10 pr-4 py-3 rounded-xl outline-none appearance-none transition-all bg-white/10 border border-white/25 text-white backdrop-blur-md"
-                  >
-                    <option value="IN" style={{background:'#1e293b'}}>🇮🇳 India (₹ / INR)</option>
-                    <option value="US" style={{background:'#1e293b'}}>🇺🇸 United States ($ / USD)</option>
-                    <option value="EU" style={{background:'#1e293b'}}>🇪🇺 Europe (€ / EUR)</option>
-                    <option value="UK" style={{background:'#1e293b'}}>🇬🇧 United Kingdom (£ / GBP)</option>
-                    <option value="JP" style={{background:'#1e293b'}}>🇯🇵 Japan (¥ / JPY)</option>
-                  </select>
-                </div>
-              </div>
             </>
+          )}
+
+          {(isSignUp || isGuestMode) && (
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-white/50 uppercase tracking-widest">Region / Currency</label>
+              <div className="relative">
+                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 z-10 pointer-events-none" />
+                <select value={region} onChange={e=>setRegion(e.target.value)}
+                  className="w-full text-sm pl-10 pr-4 py-3 rounded-xl outline-none appearance-none transition-all bg-white/10 border border-white/25 text-white backdrop-blur-md"
+                >
+                  <option value="IN" style={{background:'#1e293b'}}>🇮🇳 India (₹ / INR)</option>
+                  <option value="US" style={{background:'#1e293b'}}>🇺🇸 United States ($ / USD)</option>
+                  <option value="EU" style={{background:'#1e293b'}}>🇪🇺 Europe (€ / EUR)</option>
+                  <option value="UK" style={{background:'#1e293b'}}>🇬🇧 United Kingdom (£ / GBP)</option>
+                  <option value="JP" style={{background:'#1e293b'}}>🇯🇵 Japan (¥ / JPY)</option>
+                </select>
+              </div>
+            </div>
           )}
 
           <button type="submit" disabled={loading}
@@ -389,8 +449,8 @@ export const Login = ({ onLoginSuccess }) => {
               border: '1px solid rgba(255,255,255,0.25)',
             }}>
             {loading
-              ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/><span>Authenticating…</span></>
-              : <>{isSignUp ? 'Create Account' : 'Sign In'} <ArrowRight className="w-4 h-4"/></>
+              ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/><span>Entering…</span></>
+              : <>{isGuestMode ? 'Enter as Guest' : (isSignUp ? 'Create Account' : 'Sign In')} <ArrowRight className="w-4 h-4"/></>
             }
           </button>
         </form>

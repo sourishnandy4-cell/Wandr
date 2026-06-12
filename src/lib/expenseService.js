@@ -8,11 +8,32 @@ import {
   mockUpdateTripBudget,
   mockDeleteExpense,
   mockClearExpenses,
+  MOCK_TRIPS,
+  saveMockData,
 } from './mockDatabase';
 
-/** Fetch the last 10 expenses for a trip. */
 export const fetchRecentExpenses = async (tripId) => {
   if (isMockMode()) return mockFetchRecentExpenses(tripId);
+
+  // Fetch trip members first to build a display names lookup map
+  const { data: memberData } = await supabase
+    .from('trip_members')
+    .select(`
+      user_id,
+      users (
+        name
+      )
+    `)
+    .eq('trip_id', tripId);
+
+  const displayNames = {};
+  if (memberData) {
+    memberData.forEach(row => {
+      if (row.user_id && row.users?.name) {
+        displayNames[row.user_id] = row.users.name;
+      }
+    });
+  }
 
   const { data, error } = await supabase
     .from('expenses')
@@ -32,10 +53,11 @@ export const fetchRecentExpenses = async (tripId) => {
   return {
     data: data.map(item => {
       const isCurrentUser = user && item.paid_by === user.id;
+      const payerName = displayNames[item.paid_by] || (isCurrentUser ? user.name : `User-${item.paid_by.substring(0, 4)}`);
       return {
         ...item,
         amount: Number(item.amount),
-        paid_by: isCurrentUser ? user.name : `User-${item.paid_by.substring(0, 4)}`,
+        paid_by: payerName,
       };
     }),
     error: null,
@@ -80,7 +102,12 @@ export const fetchTripMembers = async (tripId) => {
 
   const { data, error } = await supabase
     .from('trip_members')
-    .select('user_id')
+    .select(`
+      user_id,
+      users (
+        name
+      )
+    `)
     .eq('trip_id', tripId);
 
   if (error) {
@@ -93,7 +120,7 @@ export const fetchTripMembers = async (tripId) => {
 
   const members = data.map(row => ({
     id: row.user_id,
-    name: user && row.user_id === user.id ? user.name : `User-${row.user_id.substring(0, 4)}`
+    name: row.users?.name || (user && row.user_id === user.id ? user.name : `User-${row.user_id.substring(0, 4)}`)
   }));
   
   return { data: members, error: null };

@@ -63,7 +63,13 @@ const geocode = async (query) => {
       { headers: { 'Accept-Language': 'en', 'User-Agent': 'WandrApp/2.0' } }
     );
     const d = await r.json();
-    if (d?.[0]) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), label: d[0].display_name };
+    if (d?.[0]) {
+      const coords = { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), label: d[0].display_name };
+      try {
+        localStorage.setItem(key, JSON.stringify(coords));
+      } catch (_) {}
+      return coords;
+    }
   } catch (_) {}
   return null;
 };
@@ -777,9 +783,8 @@ export const LiveLocation = ({ tripId, tripDestination, currentUser }) => {
       )}
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div className="nav-main-content" style={{
+      <div className={`nav-main-content ${isNavigating ? '' : 'grid grid-cols-1 lg:grid-cols-[1fr_310px]'}`} style={{
         display: isNavigating ? 'block' : 'grid',
-        gridTemplateColumns: '1fr 310px',
         gap: 14,
         position: 'relative',
       }}>
