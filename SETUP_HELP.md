@@ -56,7 +56,7 @@ The "TypeError: Failed to fetch" error means the GitHub Actions deployment isn't
 3. Run the SQL from `database/rls_policies.sql`
 
 #### C. GitHub Secrets Setup
-1. Go to: https://github.com/YOUR_USERNAME/trip-planner/settings/secrets/actions
+1. Go to: https://github.com/YOUR_USERNAME/Wandr/settings/secrets/actions
 2. Add secret: `VITE_SUPABASE_URL` = your project URL
 3. Add secret: `VITE_SUPABASE_ANON_KEY` = your anon key
 4. Make sure names are EXACT (including VITE_ prefix)
@@ -64,7 +64,7 @@ The "TypeError: Failed to fetch" error means the GitHub Actions deployment isn't
 #### D. Deploy
 1. Push any commit to trigger deployment
 2. Wait 2-5 minutes
-3. Check https://your-site.github.io/trip-planner/
+3. Check https://your-site.github.io/Wandr/
 4. Press F12, look for: `[Wandr] Supabase client initialised.`
 
 ## Option 3: Get Professional Help
@@ -97,7 +97,7 @@ Even in mock mode, you can test most features:
 
 To check if Supabase is configured:
 
-1. Open: https://your-site.github.io/trip-planner/test-supabase.html
+1. Open: https://your-site.github.io/Wandr/test-supabase.html
 2. See if it shows "✅ Supabase IS Configured" or "❌ NOT Configured"
 3. This tells you if the secrets are working
 

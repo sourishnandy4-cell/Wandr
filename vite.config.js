@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   // Must match the GitHub Pages repository sub-path
-  base: '/trip-planner/',
+  base: '/Wandr/',
   server: {
     port: 3000,
     open: true,

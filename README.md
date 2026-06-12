@@ -2,7 +2,7 @@
 
 > Plan, collaborate, and settle travel expenses beautifully.
 
-**Live Webapp →** [sourishnandy4-cell.github.io/trip-planner](https://sourishnandy4-cell.github.io/trip-planner/)
+**Live Webapp →** [sourishnandy4-cell.github.io/Wandr](https://sourishnandy4-cell.github.io/Wandr/)
 
 ---
 
@@ -37,8 +37,8 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/sourishnandy4-cell/trip-planner.git
-cd trip-planner
+git clone https://github.com/sourishnandy4-cell/Wandr.git
+cd Wandr
 
 # 2. Install
 npm install
