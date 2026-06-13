@@ -11,6 +11,58 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================================
+-- TABLE: users
+-- ============================================================================
+-- Public profile mapping auth.users metadata
+-- Synchronized automatically via database triggers on signup and profile edit
+
+CREATE TABLE public.users (
+    id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email        VARCHAR(255) NOT NULL,
+    name         VARCHAR(255) NOT NULL,
+    created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON TABLE users IS 'Publicly accessible profile info for application users';
+
+-- Function to handle new user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.users (id, email, name)
+    VALUES (
+        new.id,
+        new.email,
+        COALESCE(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'username', split_part(new.email, '@', 1))
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to run handle_new_user on signup
+CREATE OR REPLACE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Function to handle user updates
+CREATE OR REPLACE FUNCTION public.handle_update_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE public.users
+    SET 
+        name = COALESCE(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'username', public.users.name),
+        email = COALESCE(new.email, public.users.email)
+    WHERE id = new.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to run handle_update_user on user metadata updates
+CREATE OR REPLACE TRIGGER on_auth_user_updated
+    AFTER UPDATE ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_update_user();
+
+-- ============================================================================
 -- TABLE: trips
 -- ============================================================================
 -- Stores high-level trip information including destination and budget
@@ -23,7 +75,7 @@ CREATE TABLE trips (
     start_date   DATE NOT NULL,
     end_date     DATE NOT NULL,
     total_budget DECIMAL(10,2) DEFAULT 0 CHECK (total_budget >= 0),
-    created_by   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_by   UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at   TIMESTAMPTZ DEFAULT now(),
     updated_at   TIMESTAMPTZ DEFAULT now(),
     
@@ -44,7 +96,7 @@ COMMENT ON COLUMN trips.created_by IS 'User who created the trip (trip owner)';
 CREATE TABLE trip_members (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     trip_id    UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
-    user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id    UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     role       VARCHAR(50) DEFAULT 'member' CHECK (role IN ('owner', 'member')),
     joined_at  TIMESTAMPTZ DEFAULT now(),
     
@@ -71,7 +123,7 @@ CREATE TABLE itinerary_items (
     notes         TEXT,
     category_icon VARCHAR(50) DEFAULT 'activity' 
                   CHECK (category_icon IN ('activity', 'food', 'transport', 'music', 'accommodation')),
-    created_by    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_by    UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at    TIMESTAMPTZ DEFAULT now(),
     updated_at    TIMESTAMPTZ DEFAULT now(),
     
@@ -96,7 +148,7 @@ CREATE TABLE expenses (
     amount       DECIMAL(10,2) NOT NULL CHECK (amount > 0),
     category     VARCHAR(50) NOT NULL 
                  CHECK (category IN ('Accommodation', 'Food & Drinks', 'Activities', 'Transport')),
-    paid_by      UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+    paid_by      UUID NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
     created_at   TIMESTAMPTZ DEFAULT now(),
     updated_at   TIMESTAMPTZ DEFAULT now()
 );
@@ -115,7 +167,7 @@ COMMENT ON COLUMN expenses.amount IS 'Total amount paid in USD (or primary curre
 CREATE TABLE expense_splits (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     expense_id  UUID NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
-    user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     owed_amount DECIMAL(10,2) NOT NULL CHECK (owed_amount > 0),
     is_settled  BOOLEAN DEFAULT FALSE,
     settled_at  TIMESTAMPTZ,

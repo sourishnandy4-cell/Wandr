@@ -278,6 +278,34 @@ CREATE POLICY "Payers can delete splits"
     );
 
 -- ============================================================================
+-- POLICIES: users
+-- ============================================================================
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to users (so profiles are visible to all members)
+DROP POLICY IF EXISTS "Allow public read access" ON public.users;
+CREATE POLICY "Allow public read access"
+    ON public.users
+    FOR SELECT
+    USING (true);
+
+-- Allow individual insert
+DROP POLICY IF EXISTS "Allow individual insert" ON public.users;
+CREATE POLICY "Allow individual insert"
+    ON public.users
+    FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+-- Allow individual update
+DROP POLICY IF EXISTS "Allow individual update" ON public.users;
+CREATE POLICY "Allow individual update"
+    ON public.users
+    FOR UPDATE
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
+
+-- ============================================================================
 -- GRANT PERMISSIONS
 -- ============================================================================
 
@@ -287,6 +315,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON trip_members TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON itinerary_items TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON expenses TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON expense_splits TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO anon;
 
 -- Grant access to sequences (for any serial columns in future)
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;

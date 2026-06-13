@@ -23,6 +23,14 @@ VALUES
     ('33333333-3333-3333-3333-333333333333', 'chloe@example.com', '{"provider":"email","providers":["email"]}', '{"name":"Chloe"}', 'authenticated', 'authenticated', now())
 ON CONFLICT (id) DO NOTHING;
 
+-- Ensure mock users exist in public.users to satisfy foreign key constraints
+INSERT INTO public.users (id, email, name)
+VALUES 
+    ('11111111-1111-1111-1111-111111111111', 'sarah@example.com', 'Sarah'),
+    ('22222222-2222-2222-2222-222222222222', 'mike@example.com', 'Mike'),
+    ('33333333-3333-3333-3333-333333333333', 'chloe@example.com', 'Chloe')
+ON CONFLICT (id) DO NOTHING;
+
 DO $$
 DECLARE
     demo_user_1 UUID := '11111111-1111-1111-1111-111111111111';

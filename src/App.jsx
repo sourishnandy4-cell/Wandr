@@ -276,7 +276,7 @@ function App() {
 
           // If in Supabase mode and the trip ID is a UUID, register their membership in Supabase
           const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trip.id);
-          if (!isMockMode() && isUUID && currentUser && currentUser.id && !currentUser.id.startsWith('guest-')) {
+          if (!isMockMode(true) && isUUID && currentUser && currentUser.id && !currentUser.id.startsWith('guest-')) {
             try {
               const { error: joinErr } = await supabase
                 .from('trip_members')
@@ -314,7 +314,7 @@ function App() {
           return;
         }
         try {
-          if (isMockMode()) {
+          if (isMockMode(true)) {
             alert('This invite link is outdated. Ask the trip organiser to share a new link from the Members tab.');
             clearPending();
             return;
