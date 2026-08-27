@@ -1,8 +1,11 @@
-# ✈️ Wandr – Group Travel Planner
-
-> Plan, collaborate, and settle travel expenses beautifully.
-
-**Live Webapp →** [sourishnandy4-cell.github.io/Wandr](https://sourishnandy4-cell.github.io/Wandr/)
+<div align="center">
+  <img src="public/wandr-icon.svg" width="120" height="120" alt="Wandr Logo" />
+  <h1>✈️ Wandr – Group Travel Planner</h1>
+  <p><em>Plan, collaborate, and settle travel expenses beautifully.</em></p>
+  <p>
+    <a href="https://sourishnandy4-cell.github.io/Wandr/"><strong>Live Webapp → sourishnandy4-cell.github.io/Wandr</strong></a>
+  </p>
+</div>
 
 ---
 
