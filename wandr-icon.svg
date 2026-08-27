@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Beautiful gradient matching the Wandr design system -->
+    <linearGradient id="wandr-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A90D9" />
+      <stop offset="100%" stop-color="#2EC4B6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#0f0c29" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded card background -->
+  <rect x="32" y="32" width="448" height="448" rx="140" fill="url(#wandr-grad)" filter="url(#shadow)"/>
+  
+  <!-- Sleek Airplane vector path pointing forward -->
+  <path d="M256,80 L282,200 L440,300 L440,335 L282,275 L282,410 L335,445 L335,470 L256,445 L177,470 L177,445 L230,410 L230,275 L72,300 L72,265 L230,200 Z" fill="#ffffff" />
+  
+</svg>
