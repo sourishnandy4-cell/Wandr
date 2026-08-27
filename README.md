@@ -47,24 +47,14 @@ Wandr consolidates everything into a single, lightning-fast dashboard:
 - 🌦️ **Live Weather Forecasts & Packing Suggestions** for your exact destination.
 - ⚡ **Zero-Barrier Dual Architecture**: works out of the box with offline `localStorage` mock data or connects to **Supabase Cloud** for real-time multiplayer synchronization.
 
----
-
 ## ✨ Key Features
 
-```
-                                  WANDR CAPABILITIES
-  ┌───────────────────────┬───────────────────────┬───────────────────────┐
-  │   🗓️ ITINERARY & MAP   │   💰 EXPENSES & DEBT  │   🧳 TRAVEL VAULT     │
-  │  • Day-by-Day Blocks  │  • Multi-Member Split │  • Flight / Hotel Docs│
-  │  • Category Tagging   │  • Debt Simplification│  • PDF & URL Storage  │
-  │  • Interactive Map Pin│  • Recharts Visuals   │  • Fast Categorization│
-  ├───────────────────────┼───────────────────────┼───────────────────────┤
-  │   🤖 GEMINI AI ADVISOR │   🌦️ WEATHER & PACK   │   🎨 6 VIBRANT THEMES │
-  │  • Contextual Insights│  • 5-Day Live Forecast│  • Neon, Cosy, Sakura │
-  │  • Budget Health Check│  • Dynamic Pack Guide │  • Retro, Island, Dark│
-  │  • Instant Suggestions│  • Destination Temp   │  • Instant Switching  │
-  └───────────────────────┴───────────────────────┴───────────────────────┘
-```
+| 🗓️ Itinerary & Mapping | 💰 Expense Tracker & Debt | 🧳 Travel Document Vault |
+| :--- | :--- | :--- |
+| • **Day-by-Day Blocks**: Morning to night slots<br>• **Category Tagging**: Flights, food, lodging<br>• **Map Pin Integration**: Visual venue plotting | • **Multi-Member Splitting**: Equal or custom<br>• **Debt Simplification**: Minimized transfers<br>• **Recharts Analytics**: Dynamic spending visuals | • **Ticket & Voucher Hub**: Boarding passes & hotels<br>• **PDF & URL Attachments**: One-click access<br>• **Instant Categorization**: Quick search & filter |
+| **🤖 Gemini AI Travel Advisor** | **🌦️ Weather & Packing Radar** | **🎨 6 Vibrant Design Themes** |
+| • **Contextual Insights**: Reads live trip state<br>• **Budget Audits**: Proactive overspending alerts<br>• **Smart Recommendations**: Dining & hidden gems | • **5-Day Live Forecast**: Real-time climate<br>• **Dynamic Packing Guide**: Weather-aware checklist<br>• **Destination Temperature**: Live metrics | • **Neon, Cosy, Sakura, Retro, Island, Eclipse**<br>• **Instant Switcher**: 1-click theme preview<br>• **Full CSS Tokens**: Modern styled palettes |
+
 
 ### 1. 📊 Unified Dashboard & Trip Analytics
 - **Live Trip Countdown**: Displays days remaining or active day counter.
