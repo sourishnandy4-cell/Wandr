@@ -19,22 +19,25 @@ export function useCloudSync({
 }) {
 
   const handleSyncTripToCloud = async () => {
-    if (!currentUser) return;
-    if (!tripMeta) return;
+    if (!currentUser || !tripMeta) return;
+    if (!supabase || isMockMode()) {
+      alert("Wandr is running in offline Mock Mode. Configure Supabase credentials in your project settings to enable cloud sync.");
+      return;
+    }
 
     const confirmSync = window.confirm(
-      `Do you want to sync "${tripMeta.name}" to the cloud? This will save the trip, all itinerary items, and expenses in the live cloud database so it is immediately available on all your devices (including your phone).`
+      `Do you want to sync "${tripMeta.name}" to the cloud? This will save the trip, all itinerary items, and expenses in the live cloud database so it is immediately available on all your devices.`
     );
     if (!confirmSync) return;
 
     setLoading(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        throw new Error("You are not properly authenticated with Supabase. Please sign out and sign in again.");
+      if (!sessionData?.session) {
+        throw new Error("You are not authenticated with Supabase. Please sign in to sync.");
       }
       if (sessionData.session.user.id !== currentUser.id) {
-        throw new Error("Your session is invalid or out of sync. Please sign out and sign in again.");
+        throw new Error("Your session is out of sync. Please sign in again.");
       }
 
       const { data: syncedTrip, error: tripErr } = await supabase
@@ -164,7 +167,7 @@ export function useCloudSync({
   };
 
   const autoMigrateLocalTrips = async () => {
-    if (!currentUser) return;
+    if (!currentUser || !supabase || isMockMode()) return;
     
     const localTripsToSync = MOCK_TRIPS.filter(t => {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t.id);
@@ -178,7 +181,7 @@ export function useCloudSync({
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session || sessionData.session.user.id !== currentUser.id) {
+      if (!sessionData?.session || sessionData.session.user.id !== currentUser.id) {
         return;
       }
 

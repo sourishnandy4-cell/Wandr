@@ -1,22 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const DEFAULT_URL = 'https://rggsvpjiwhdicgaukcaa.supabase.co';
-const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnZ3N2cGppd2hkaWNnYXVrY2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTgwMjksImV4cCI6MjA5NTM5NDAyOX0.2eQxJpPxgd255NsqHhxyF3sWjm40Xe7YFWqCrdI8hS0';
-
-const SUPABASE_URL      = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
+const envUrl = import.meta.env.VITE_SUPABASE_URL;
+const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const isValidUrl = (url) => {
-  if (!url) return false;
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (trimmed.includes('<your') || trimmed.includes('xxxx') || trimmed.length < 10) return false;
   try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:' && url.includes('supabase.co');
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'https:' && parsed.hostname.endsWith('.supabase.co');
   } catch {
     return false;
   }
 };
 
-const staticMockMode = false;
+const hasValidConfig = isValidUrl(envUrl) && !!envKey && typeof envKey === 'string' && envKey.trim().length > 20 && !envKey.includes('...');
+
+const SUPABASE_URL      = hasValidConfig ? envUrl.trim() : null;
+const SUPABASE_ANON_KEY = hasValidConfig ? envKey.trim() : null;
+
+export const staticMockMode = !hasValidConfig;
 
 // Enable runtime mock mode if a network request fails
 export const setRuntimeMockMode = () => {
@@ -42,7 +46,7 @@ export const isMockMode = (ignoreActiveTripId = false) => {
 };
 
 if (staticMockMode) {
-  console.info('[Wandr] No Supabase config — running in offline mock mode.');
+  console.info('[Wandr] No valid Supabase config provided — running seamlessly in offline mock mode.');
 } else {
   console.info('[Wandr] Supabase client initialised →', SUPABASE_URL);
 }

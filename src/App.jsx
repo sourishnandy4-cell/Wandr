@@ -208,15 +208,17 @@ function App() {
 
   useEffect(() => {
     if (currentUser) {
-      // Clear active trip if it was a guest/demo/mock trip so they don't get trapped in guest mode
-      const activeTrip = localStorage.getItem('wandr_active_trip_id');
-      if (activeTrip) {
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeTrip);
-        const isDemo = activeTrip === 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-        if (isDemo || !isUUID) {
-          localStorage.removeItem('wandr_active_trip_id');
-          setActiveTripId(null);
-          setTripMeta(null);
+      if (!isMockMode(true)) {
+        // Clear active trip if it was a guest/demo/mock trip in cloud mode
+        const activeTrip = localStorage.getItem('wandr_active_trip_id');
+        if (activeTrip) {
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeTrip);
+          const isDemo = activeTrip === 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+          if (isDemo || !isUUID) {
+            localStorage.removeItem('wandr_active_trip_id');
+            setActiveTripId(null);
+            setTripMeta(null);
+          }
         }
       }
       fetchExistingTrips();
@@ -369,11 +371,14 @@ function App() {
         }
         setTripMeta(data);
       } else {
-        const { data, error: fetchErr } = await supabase
-          .from('trips')
-          .select('id, name, destination, start_date, end_date, total_budget')
-          .eq('id', activeTripId)
-          .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
+        const { data, error: fetchErr } = await withTimeout(
+          supabase
+            .from('trips')
+            .select('id, name, destination, start_date, end_date, total_budget')
+            .eq('id', activeTripId)
+            .maybeSingle(),
+          2500
+        );
 
         if (fetchErr) {
           console.error('Fetch trip error:', fetchErr);
